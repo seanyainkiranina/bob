@@ -1,0 +1,133 @@
+""" " Module for defining the Target class used in the game."""
+
+import os
+import pygame
+from pygame.locals import (  # pylint: disable=[E0611,W0611]
+    QUIT,  # pylint: disable=[E0611,W0611]
+    KEYDOWN,  # pylint: disable=[E0611,W0611]
+    K_UP,  # pylint: disable=[E0611,W0611]
+    K_DOWN,  # pylint: disable=[E0611,W0611]
+    K_LEFT,  # pylint: disable=[E0611,W0611]
+    K_RIGHT,  # pylint: disable=[E0611,W0611]
+)  # pylint: disable=[E0611,W0611]
+
+
+class Target:
+    """Represents a target in the game with a name and visibility status."""
+
+    def __init__(self, name, x=0, y=0, maxX=810, minX=-10, maxY=600, minY=-10):
+        self._name = name
+        self._shown = False
+        self._x = x
+        self._y = y
+        self._main_dir = os.path.split(os.path.abspath(__file__))[0]
+        self._data_dir = os.path.join(self._main_dir, "..\\images")
+        self._image = self.getimage()
+        self._rect = self._image.get_rect()
+        self._max_x = maxX
+        self._min_x = minY
+        self._max_y = maxY
+        self._min_y = minY
+        self.start_x = x
+
+    @property
+    def rect(self):
+        """Returns the rect."""
+        return self._rect
+    @property
+    def image(self):
+        """Returns the image of the target."""
+        return self._image
+
+    @property
+    def height(self):
+        """Returns the height of the image."""
+        return self._image.get_height()
+
+    @property
+    def width(self):
+        """Returns the width of the image."""
+        return self._image.get_width()
+
+    @property
+    def name(self):
+        """Returns the name of the target."""
+        return self._name
+
+    @property
+    def shown(self):
+        """Returns whether the target is shown."""
+        return self._shown
+
+    @shown.setter
+    def shown(self, value):
+        """Sets the visibility of the target."""
+        self._shown = value
+
+    @property
+    def x(self):
+        """Returns the X coordinate of the target."""
+        return self._x
+
+    @x.setter
+    def x(self, value):
+        """Sets the X coordinate of the target."""
+        self._x = value
+
+    @property
+    def y(self):
+        """Returns the Y coordinate of the target."""
+        return self._y
+
+    @y.setter
+    def y(self, value):
+        """Sets the Y coordinate of the target."""
+        self._y = value
+
+    def getimage(self):
+        """Returns the image of the target based on its name."""
+        image_path = os.path.join(self._data_dir, f"{self._name}.png")
+        if os.path.exists(image_path):
+            return pygame.image.load(image_path)
+        else:
+            raise FileNotFoundError(
+                f"Image for target '{self._name}' not found at {image_path}"
+            )
+
+    def move_x_player(self, delta):
+        """Moves the target in the X direction by delta, ensuring it stays within bounds."""
+        new_x = self._x + delta
+        if new_x < self._min_x:
+            new_x = self._min_x
+        if new_x > self._max_x:
+            new_x = self._max_x
+        self._x = new_x
+
+    def move_x_target(self, delta):
+        """Moves the target in the X direction by delta, ensuring it stays within bounds."""
+        if self.start_x > 0:
+            delta = -delta
+        else:
+            delta = abs(delta)
+        new_x = self._x + delta
+        if new_x < self._min_x:
+            new_x = self.start_x
+        if new_x > self._max_x:
+            new_x = self.start_x
+        self._x = new_x
+
+    def move_up(self):
+        """Moves the target in the Y direction by delta, ensuring it stays within bounds."""
+        new_y = self._y - 2
+        if new_y < self._min_y:
+            new_y = self._min_y
+        if new_y >= self._max_y:
+            new_y = self._min_y
+        self._y = new_y
+
+    def move_down(self):
+        """Moves the target in the Y direction by delta, ensuring it stays within bounds."""
+        new_y = self._y - 1
+        if new_y < self._min_y:
+            new_y = self._max_y
+        self._y = new_y
