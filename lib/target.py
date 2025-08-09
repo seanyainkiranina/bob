@@ -29,6 +29,7 @@ class Target:
         self._max_y = maxY
         self._min_y = minY
         self.start_x = x
+        self._bullets = []
 
     @property
     def rect(self):
@@ -90,6 +91,11 @@ class Target:
         self._shown = False
         return self.start_x
 
+    def get_bullets(self):
+        """Returns the list of bullets."""
+        for b in range(0, 6):
+            self._bullets.append(Target(f"bullet{b}", self._x, self._y))
+        return self._bullets
     def getexploded_images(self):
         """Returns a list of exploded images for the target."""
         exploded_images = []

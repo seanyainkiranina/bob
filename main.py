@@ -28,6 +28,9 @@ class Game:
         self._targets = []
         self._running = True
         self.load_resources()
+        self._saved_x = 0
+        self._saved_y = 0
+        self._explosions = []
 
     def load_resources(self):
         """Load images, sounds, and other resources here"""
@@ -65,10 +68,14 @@ class Game:
             and missle.y < target.y + target.height
             and missle.y + missle.height > target.y
         ):
+            if target.name == "5200":
+                missle.y = -10
+                return False
             target.shown = False
-            savedx = target.x
-            savedy = target.y
+            self.saved_x = target.x
+            self.saved_y = target.y
             target.x = target.explode()
+            self_explosions = target.getexploded_images()
             return True
         return False
 
@@ -81,8 +88,10 @@ class Game:
     def run(self):
         """Main game loop."""
         images_shown = 0
+        explosion = None
         fired = False
         score = 0
+        wait = 0
         self._clock.tick(60)  # Limit to 60 FPS
         self._screen.fill((0, 0, 0))  # Clear the screen with black
         font = pygame.font.Font(
@@ -131,18 +140,29 @@ class Game:
                             score += 10
                             fired = False
                             self._missle.y = -10
+                            self._explosions = gallerytarget.getexploded_images()
+                            explosion = self._explosions.pop(0)
                 else:
-                    if images_shown < 2:
+                    if images_shown < 6:
                         zz = random.randint(1, 100)
                         if zz < 50:
                             gallerytarget.shown = True
                             images_shown += 1
 
-            #       self._screen.fill((0, 0, 0))  # Clear the screen with black
             self._screen.blit(self._player.image, (self._player.x, self._player.y))
-            # pygame.display.flip()  # Update the display
-            # pygame.display.update(self._player.rect)  # Update the display
             self._screen.blit(text, text_rect)
+            if explosion is not None:
+                self._screen.blit(explosion, (self.saved_x, self.saved_y))
+
+            if explosion is not None and wait > 10:
+                if len(self._explosions) > 0:
+                    explosion = self._explosions.pop(0)
+                else:
+                    explosion = None
+                wait = 0
+            if explosion is not None:
+                wait += 1
+
             pygame.display.update()
 
         pygame.display.quit()
