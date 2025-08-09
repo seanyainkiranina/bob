@@ -25,7 +25,7 @@ class Target:
         self._image = self.getimage()
         self._rect = self._image.get_rect()
         self._max_x = maxX
-        self._min_x = minY
+        self._min_x = minX
         self._max_y = maxY
         self._min_y = minY
         self.start_x = x
@@ -34,6 +34,7 @@ class Target:
     def rect(self):
         """Returns the rect."""
         return self._rect
+
     @property
     def image(self):
         """Returns the image of the target."""
@@ -83,6 +84,24 @@ class Target:
     def y(self, value):
         """Sets the Y coordinate of the target."""
         self._y = value
+
+    def explode(self):
+        """Handles the explosion of the target."""
+        self._shown = False
+        return self.start_x
+
+    def getexploded_images(self):
+        """Returns a list of exploded images for the target."""
+        exploded_images = []
+        for i in range(0, 5):
+            image_path = os.path.join(self._data_dir, f"enemy_boom{i}.png")
+            if os.path.exists(image_path):
+                exploded_images.append(pygame.image.load(image_path))
+            else:
+                raise FileNotFoundError(
+                    f"Exploded image for target '{self._name}' not found at {image_path}"
+                )
+        return exploded_images
 
     def getimage(self):
         """Returns the image of the target based on its name."""

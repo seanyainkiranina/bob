@@ -44,6 +44,9 @@ class Game:
             else:
                 x = -10
             gallary_target = Target(filename, x, last_y)
+            z = random.randint(1, 3)
+            if z > 1:
+                gallary_target.shown = True
             self._targets.append(gallary_target)
             last_y += gallary_target.height + 10
 
@@ -51,27 +54,45 @@ class Game:
         """Load and display enemies and other game elements."""
         for gallerytarget in self._targets:
             rr = random.randint(1, 100)
-            if rr > 75:
-
+            if rr > 75 and gallerytarget.shown:
                 gallerytarget.move_x_target(random.randint(0, 2))
-                self._screen.blit(gallerytarget.image, (gallerytarget.x, gallerytarget.y))
-                pygame.display.update(gallerytarget.rect)  # Update the display
 
-        pygame.display.update()  # Update the display
+    def kill_enemy(self, missle, target):
+        """Check for collision between missile and target."""
+        if (
+            missle.x < target.x + target.width
+            and missle.x + missle.width > target.x
+            and missle.y < target.y + target.height
+            and missle.y + missle.height > target.y
+        ):
+            target.shown = False
+            savedx = target.x
+            savedy = target.y
+            target.x = target.explode()
+            return True
+        return False
 
     def fire_missle(self):
         """Fire a missile from the player's position."""
         if self._missle.y > 0:
             self._missle.move_up()
             self._screen.blit(self._missle.image, (self._missle.x, self._missle.y))
-            pygame.display.update(self._missle.rect)  # Update the display
 
     def run(self):
         """Main game loop."""
+        images_shown = 0
         fired = False
+        score = 0
         self._clock.tick(60)  # Limit to 60 FPS
         self._screen.fill((0, 0, 0))  # Clear the screen with black
+        font = pygame.font.Font(
+            None, 20
+        )  # None uses the default font, 36 is the font size
         while self._running:
+            self._screen.fill((0, 0, 0))  # Clear the screen with black
+            text = font.render(f"Score:{score}", True, (255, 255, 255))  # White text
+            text_rect = text.get_rect(center=(100, 600 - 20))
+
             for event in pygame.event.get():
                 if event.type == QUIT:
                     self._running = False
@@ -91,17 +112,37 @@ class Game:
 
             if fired:
                 self.fire_missle()
+                pygame.display.update(self._missle.rect)  # Update the display
 
             if self._missle.y < 0:
                 fired = False
                 self._missle.y = 650
 
             self.load_enemy()
+            images_shown = 0
+            for gallerytarget in self._targets:
+                if gallerytarget.shown:
+                    images_shown += 1
+                    self._screen.blit(
+                        gallerytarget.image, (gallerytarget.x, gallerytarget.y)
+                    )
+                    if fired:
+                        if self.kill_enemy(self._missle, gallerytarget):
+                            score += 10
+                            fired = False
+                            self._missle.y = -10
+                else:
+                    if images_shown < 2:
+                        zz = random.randint(1, 100)
+                        if zz < 50:
+                            gallerytarget.shown = True
+                            images_shown += 1
 
-            self._screen.fill((0, 0, 0))  # Clear the screen with black
+            #       self._screen.fill((0, 0, 0))  # Clear the screen with black
             self._screen.blit(self._player.image, (self._player.x, self._player.y))
             # pygame.display.flip()  # Update the display
             # pygame.display.update(self._player.rect)  # Update the display
+            self._screen.blit(text, text_rect)
             pygame.display.update()
 
         pygame.display.quit()
