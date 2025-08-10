@@ -157,15 +157,16 @@ class Game:
                         if zz < 50:
                             gallerytarget.shown = True
                             images_shown += 1
-                            new_r = random.randint(1, 100)
-                            if new_r < 50:
+                            if gallerytarget.start_x < 0:
                                 gallerytarget.start_x = 810
+                                gallerytarget.x = 810
                             else:
                                 gallerytarget.start_x = -10
+                                gallerytarget.x = -10
 
 
             if self._score > -10:
-               self._screen.blit(self._player.image, (self._player.x, self._player.y))
+                self._screen.blit(self._player.image, (self._player.x, self._player.y))
             self._screen.blit(text, text_rect)
             if explosion is not None:
                 self._screen.blit(explosion, (self.saved_x, self.saved_y))
