@@ -130,6 +130,7 @@ class Target:
 
     def move_x_target(self, delta):
         """Moves the target in the X direction by delta, ensuring it stays within bounds."""
+        result = 0
         if self.start_x > 0:
             delta = -delta
         else:
@@ -137,10 +138,12 @@ class Target:
         new_x = self._x + delta
         if new_x < self._min_x:
             new_x = self.start_x
+            result = -2
         if new_x > self._max_x:
             new_x = self.start_x
+            result = -2
         self._x = new_x
-
+        return result
     def move_up(self):
         """Moves the target in the Y direction by delta, ensuring it stays within bounds."""
         new_y = self._y - 2
