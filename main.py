@@ -94,6 +94,7 @@ class Game:
         fired = False
         self._score = 0
         wait = 0
+        new_r = 0
         self._clock.tick(60)  # Limit to 60 FPS
         self._screen.fill((0, 0, 0))  # Clear the screen with black
         font = pygame.font.Font(
@@ -145,6 +146,7 @@ class Game:
                     if fired:
                         if self.kill_enemy(self._missle, gallerytarget):
                             self._score += 3
+                            images_shown -= 1
                             fired = False
                             self._missle.y = -10
                             self._explosions = gallerytarget.getexploded_images()
@@ -155,6 +157,12 @@ class Game:
                         if zz < 50:
                             gallerytarget.shown = True
                             images_shown += 1
+                            new_r = random.randint(1, 100)
+                            if new_r < 50:
+                                gallerytarget.start_x = 810
+                            else:
+                                gallerytarget.start_x = -10
+
 
             if self._score > -10:
                self._screen.blit(self._player.image, (self._player.x, self._player.y))

@@ -28,7 +28,7 @@ class Target:
         self._min_x = minX
         self._max_y = maxY
         self._min_y = minY
-        self.start_x = x
+        self._start_x = x
         self._bullets = []
 
     @property
@@ -67,6 +67,16 @@ class Target:
         self._shown = value
 
     @property
+    def start_x(self):
+        """Returns the starting X coordinate of the target."""
+        return self._start_x
+
+    @start_x.setter
+    def start_x(self, value):
+        """Returns the starting X coordinate of the target."""
+        self._start_x = value
+
+    @property
     def x(self):
         """Returns the X coordinate of the target."""
         return self._x
@@ -96,6 +106,7 @@ class Target:
         for b in range(0, 6):
             self._bullets.append(Target(f"bullet{b}", self._x, self._y))
         return self._bullets
+
     def getexploded_images(self):
         """Returns a list of exploded images for the target."""
         exploded_images = []
@@ -131,19 +142,20 @@ class Target:
     def move_x_target(self, delta):
         """Moves the target in the X direction by delta, ensuring it stays within bounds."""
         result = 0
-        if self.start_x > 0:
+        if self._start_x > 0:
             delta = -delta
         else:
             delta = abs(delta)
         new_x = self._x + delta
         if new_x < self._min_x:
-            new_x = self.start_x
+            new_x = self._start_x
             result = -2
         if new_x > self._max_x:
-            new_x = self.start_x
+            new_x = self._start_x
             result = -2
         self._x = new_x
         return result
+
     def move_up(self):
         """Moves the target in the Y direction by delta, ensuring it stays within bounds."""
         new_y = self._y - 2
