@@ -1,6 +1,7 @@
 """ " Module for defining the Target class used in the game."""
 
 import os
+import random
 import pygame
 from pygame.locals import (  # pylint: disable=[E0611,W0611]
     QUIT,  # pylint: disable=[E0611,W0611]
@@ -101,11 +102,40 @@ class Target:
         self._shown = False
         return self.start_x
 
-    def get_bullets(self):
+    def get_bomb(self, x):
+        """Get a bullet"""
+        bombs = self.get_bullets(x)
+        b = []
+        total_bombs = random.randint(1, 5)
+        lb = 0
+        while lb < total_bombs:
+            which_bomb = random.randint(0, len(bombs) - 1)
+            bomb = bombs[which_bomb]
+            bomb.x = bomb.x + random.randint(-2, 4)
+            bomb.y = bomb.y + random.randint(-4, 4)
+            b.append(bombs[which_bomb])
+            lb += 1
+
+        return b
+
+    def get_bullets(self, x):
         """Returns the list of bullets."""
         for b in range(0, 6):
-            self._bullets.append(Target(f"bullet{b}", self._x, self._y))
+            self._bullets.append(Target(f"bullet{b}", x, self._y))
         return self._bullets
+
+    def get_game_over_images(self):
+        """Returns the explosion image for the target."""
+        exploded_images = []
+        for i in range(0, 18):
+            explosion_path = os.path.join(self._data_dir, f"explosion{i}.png")
+            if os.path.exists(explosion_path):
+                exploded_images.append(pygame.image.load(explosion_path))
+            else:
+                raise FileNotFoundError(
+                    f"Explosion image for target '{self._name}' not found at {explosion_path}"
+                )
+        return exploded_images
 
     def getexploded_images(self):
         """Returns a list of exploded images for the target."""
