@@ -194,10 +194,10 @@ class Target:
         new_x = self._x + delta
         if new_x < self._min_x:
             new_x = self._start_x
-            result = -2
+            result = 0-((600-random.randint(1, self.y))/100)
         if new_x > self._max_x:
             new_x = self._start_x
-            result = -2
+            result = 0-((600-random.randint(1, self.y))/100)
         self._x = new_x
 
         if self._x != last_x:

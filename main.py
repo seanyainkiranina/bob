@@ -114,27 +114,50 @@ class Game:
             )  # White text
             text_rect = text.get_rect(center=(150, 20))
 
-            text2 = font.render(
-                "Press Space Bar to Start", True, (255, 0, 0)
-            )  # White text
+            text2 = font.render("Press S key to Start", True, (255, 0, 0))  # White text
             text2_rect = text2.get_rect(center=(150, 600 - 40))
+
+            if self._max_score > 0:
+                text3 = font.render(f"Your Score:{self._max_score}", True, (255, 0, 0))
+                text3_rect = text.get_rect(center=(200, 45))
+                self._screen.blit(text3, text3_rect)
 
             for event in pygame.event.get():
                 if event.type == QUIT:
                     self._starting = False
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_SPACE]:
+            if keys[pygame.K_s]:
                 self._starting = False
+                self._running = True
+            if keys[pygame.K_ESCAPE]:
+                self._starting = False
+                self._running = True
 
             self._screen.blit(text, text_rect)
             self._screen.blit(text2, text2_rect)
 
             pygame.display.update()
 
-        self.start()
+        if self._running:
+            self.start()
+
+        pygame.display.quit()
 
     def start(self):
         """Main game loop."""
+        self._clock = pygame.time.Clock()
+        self._targets = []
+        self._running = True
+        self._starting = True
+        self.load_resources()
+        self._saved_x = 0
+        self._saved_y = 0
+        self._explosions = []
+        self._score = 0
+        self._max_score = 0
+        self._bombs = []
+        self._game_over_images = []
+
         images_shown = 0
         explosion = None
         fired = False
@@ -154,18 +177,21 @@ class Game:
                 self._max_score = self._score
             self._screen.fill((0, 0, 0))  # Clear the screen with black
             self._score = round(self._score, 1)
+            self._max_score = round(self._max_score, 1)
             if self._score > -10:
                 text = font.render(
                     f"Score:{self._score}", True, (255, 255, 255)
                 )  # White text
             else:
                 text = font.render(f"Your Score:{self._max_score}", True, (255, 0, 0))
-            text_rect = text.get_rect(center=(120, 600 - 20))
+            text_rect = text.get_rect(center=(300, 600 - 20))
 
             for event in pygame.event.get():
                 if event.type == QUIT:
                     self._running = False
             keys = pygame.key.get_pressed()
+            if keys[pygame.K_ESCAPE]:
+                self._running = False
 
             if keys[pygame.K_LEFT] and self._score > -10:
                 self._player.move_x_player(-1)
@@ -198,7 +224,7 @@ class Game:
                     last_x = gallerytarget.x + gallerytarget.width / 2
                     if fired:
                         if self.kill_enemy(self._missle, gallerytarget):
-                            self._score += 3
+                            self._score += 103 - gallerytarget.width
                             if self._score > 20:
 
                                 self._score += (600 - gallerytarget.y) / 100
@@ -250,6 +276,9 @@ class Game:
                     game_over_image, (self._player.x, self._player.y - 50)
                 )
                 game_over_wait = 1
+                if len(self._game_over_images) == 0:
+                    self._running = False
+                    game_over_done = True
             else:
                 if len(self._game_over_images) == 0 and self._score < -9:
                     game_over_done = True
@@ -282,6 +311,9 @@ class Game:
                     self._bombs.remove(bomb)
 
             pygame.display.update()
+
+        if game_over_done:
+            self.run()
 
         pygame.display.quit()
 
