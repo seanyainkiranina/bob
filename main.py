@@ -114,6 +114,24 @@ class Game:
             )  # White text
             text_rect = text.get_rect(center=(150, 20))
 
+            text4 = font.render(
+                "Space bar to fire and arrows to move left and right",
+                True,
+                (255, 255, 255),
+            )
+            text4_rect = text4.get_rect(topleft=(0, 99))
+
+            text5 = font.render(
+                "Game ends when score is 10 below zero", True, (255, 255, 255)
+            )
+            text5_rect = text5.get_rect(topleft=(0, 129))
+
+            text6 = font.render(
+                "Escape to exit", True, (255, 255, 255)
+            )
+            text6_rect = text6.get_rect(topleft=(0, 159))
+
+
             text2 = font.render("Press S key to Start", True, (255, 0, 0))  # White text
             text2_rect = text2.get_rect(center=(150, 600 - 40))
 
@@ -135,7 +153,11 @@ class Game:
 
             self._screen.blit(text, text_rect)
             self._screen.blit(text2, text2_rect)
+            self._screen.blit(text4, text4_rect)
 
+            self._screen.blit(text5, text5_rect)
+            
+            self._screen.blit(text6, text6_rect)
             pygame.display.update()
 
         if self._running:
@@ -184,7 +206,7 @@ class Game:
                 )  # White text
             else:
                 text = font.render(f"Your Score:{self._max_score}", True, (255, 0, 0))
-            text_rect = text.get_rect(center=(300, 600 - 20))
+            text_rect = text.get_rect(topleft=(10, 600 - 20))
 
             for event in pygame.event.get():
                 if event.type == QUIT:
