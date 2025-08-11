@@ -27,6 +27,7 @@ class Game:
         self._clock = pygame.time.Clock()
         self._targets = []
         self._running = True
+        self._starting = True
         self.load_resources()
         self._saved_x = 0
         self._saved_y = 0
@@ -103,6 +104,36 @@ class Game:
             self._screen.blit(self._missle.image, (self._missle.x, self._missle.y))
 
     def run(self):
+        self._screen.fill((0, 0, 0))  # Clear the screen with black
+        font = pygame.font.Font(
+            None, 36
+        )  # None uses the default font, 36 is the font size
+        while self._starting:
+            text = font.render(
+                "Welcome To Irata Warrior", True, (255, 255, 255)
+            )  # White text
+            text_rect = text.get_rect(center=(150, 20))
+
+            text2 = font.render(
+                "Press Space Bar to Start", True, (255, 0, 0)
+            )  # White text
+            text2_rect = text2.get_rect(center=(150, 600 - 40))
+
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    self._starting = False
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
+                self._starting = False
+
+            self._screen.blit(text, text_rect)
+            self._screen.blit(text2, text2_rect)
+
+            pygame.display.update()
+
+        self.start()
+
+    def start(self):
         """Main game loop."""
         images_shown = 0
         explosion = None
@@ -114,6 +145,7 @@ class Game:
         last_x = 0
         self._clock.tick(60)  # Limit to 60 FPS
         self._screen.fill((0, 0, 0))  # Clear the screen with black
+        self.load_enemy()
         font = pygame.font.Font(
             None, 20
         )  # None uses the default font, 36 is the font size
@@ -127,9 +159,7 @@ class Game:
                     f"Score:{self._score}", True, (255, 255, 255)
                 )  # White text
             else:
-                text = font.render(
-                    f"Game Over Your Final Score:{self._max_score}", True, (255, 0, 0)
-                )
+                text = font.render(f"Your Score:{self._max_score}", True, (255, 0, 0))
             text_rect = text.get_rect(center=(120, 600 - 20))
 
             for event in pygame.event.get():
@@ -170,8 +200,8 @@ class Game:
                         if self.kill_enemy(self._missle, gallerytarget):
                             self._score += 3
                             if self._score > 20:
-                            
-                                self._score +=  ( (600 - gallerytarget.y) / 100 ) 
+
+                                self._score += (600 - gallerytarget.y) / 100
                             images_shown -= 1
                             fired = False
                             self._missle.y = -10
@@ -221,11 +251,11 @@ class Game:
                 )
                 game_over_wait = 1
             else:
-                if len(self._game_over_images) ==0 and self._score<-9:
+                if len(self._game_over_images) == 0 and self._score < -9:
                     game_over_done = True
 
-           # if not game_over_done and len(self._game_over_images) == 0:
-           #     game_over_done = True
+            # if not game_over_done and len(self._game_over_images) == 0:
+            #     game_over_done = True
 
             if game_over_wait > 0 and not game_over_done:
                 self._screen.blit(

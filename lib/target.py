@@ -24,6 +24,8 @@ class Target:
         self._main_dir = os.path.split(os.path.abspath(__file__))[0]
         self._data_dir = os.path.join(self._main_dir, "..\\images")
         self._image = self.getimage()
+        self._image_left = self.image
+        self._image_right = self.getrightimage()
         self._rect = self._image.get_rect()
         self._max_x = maxX
         self._min_x = minX
@@ -160,6 +162,16 @@ class Target:
                 f"Image for target '{self._name}' not found at {image_path}"
             )
 
+    def getrightimage(self):
+        """Returns the image of the target based on its name."""
+        image_path = os.path.join(self._data_dir, f"{self._name}_right.png")
+        if os.path.exists(image_path):
+            return pygame.image.load(image_path)
+        else:
+            raise FileNotFoundError(
+                f"Image for target '{self._name}' not found at {image_path}"
+            )
+
     def move_x_player(self, delta):
         """Moves the target in the X direction by delta, ensuring it stays within bounds."""
         new_x = self._x + delta
@@ -176,6 +188,9 @@ class Target:
             delta = -delta
         else:
             delta = abs(delta)
+
+        last_x = self._x
+      
         new_x = self._x + delta
         if new_x < self._min_x:
             new_x = self._start_x
@@ -184,6 +199,13 @@ class Target:
             new_x = self._start_x
             result = -2
         self._x = new_x
+
+        if self._x != last_x:
+            if self._x > last_x:
+                self._image = self._image_left
+            else:
+                self._image = self._image_right
+
         return result
 
     def move_up(self):
