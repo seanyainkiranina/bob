@@ -33,7 +33,15 @@ class Target:
         self._min_y = minY
         self._start_x = x
         self._bullets = []
+        self._nodeduction = False
 
+    @property
+    def nodeduction(self):
+        """nodeduction """
+        return self._nodeduction
+    @nodeduction.setter
+    def nodeduction(self,value):
+        self._nodeduction = value 
     @property
     def rect(self):
         """Returns the rect."""
@@ -190,14 +198,14 @@ class Target:
             delta = abs(delta)
 
         last_x = self._x
-      
+
         new_x = self._x + delta
         if new_x < self._min_x:
             new_x = self._start_x
-            result = 0-((600-random.randint(1, self.y))/100)
+            result = 0 - ((600 - random.randint(1, self.y)) / 100)
         if new_x > self._max_x:
             new_x = self._start_x
-            result = 0-((600-random.randint(1, self.y))/100)
+            result = 0 - ((600 - random.randint(1, self.y)) / 100)
         self._x = new_x
 
         if self._x != last_x:
@@ -205,6 +213,9 @@ class Target:
                 self._image = self._image_left
             else:
                 self._image = self._image_right
+
+        if self._nodeduction:
+            result = 0
 
         return result
 

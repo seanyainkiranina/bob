@@ -41,7 +41,7 @@ class Game:
         """Load images, sounds, and other resources here"""
         self._player = Target("player", 400, 550, 780, 20)
         self._missle = Target("missle", 400, 610)
-        filenames = ["pacman", "keyboard", "intelli", "kong", "et", "enemy", "5200"]
+        filenames = ["pacman", "keyboard", "intelli", "kong", "et", "enemy", "5200","ghost1","ghost2","ghost3","ghost4"]
         last_y = 20
         x = -10
         for filename in filenames:
@@ -55,7 +55,14 @@ class Game:
             if z > 1:
                 gallary_target.shown = True
             self._targets.append(gallary_target)
-            last_y += gallary_target.height + 10
+            if filename != "ghost1" and filename  !="ghost2" and filename !="ghost3" and filename !="ghost4":
+                gallary_target.nodeduction = True
+                last_y += gallary_target.height + 10
+            if gallary_target.nodeduction:
+                if gallary_target.x <0:
+                    gallary_target.x -= gallary_target.width
+                else:
+                    gallary_target.x += gallary_target.width
 
     def load_enemy(self):
         """Load and display enemies and other game elements."""
@@ -104,9 +111,10 @@ class Game:
             self._screen.blit(self._missle.image, (self._missle.x, self._missle.y))
 
     def run(self):
+        """load screen"""
         self._screen.fill((0, 0, 0))  # Clear the screen with black
         font = pygame.font.Font(
-            None, 36
+            None, 24
         )  # None uses the default font, 36 is the font size
         while self._starting:
             text = font.render(
@@ -126,11 +134,8 @@ class Game:
             )
             text5_rect = text5.get_rect(topleft=(0, 129))
 
-            text6 = font.render(
-                "Escape to exit", True, (255, 255, 255)
-            )
+            text6 = font.render("Escape to exit", True, (255, 255, 255))
             text6_rect = text6.get_rect(topleft=(0, 159))
-
 
             text2 = font.render("Press S key to Start", True, (255, 0, 0))  # White text
             text2_rect = text2.get_rect(center=(150, 600 - 40))
@@ -156,7 +161,7 @@ class Game:
             self._screen.blit(text4, text4_rect)
 
             self._screen.blit(text5, text5_rect)
-            
+
             self._screen.blit(text6, text6_rect)
             pygame.display.update()
 
@@ -246,19 +251,20 @@ class Game:
                     last_x = gallerytarget.x + gallerytarget.width / 2
                     if fired:
                         if self.kill_enemy(self._missle, gallerytarget):
-                            self._score += 103 - gallerytarget.width
-                            if self._score > 20:
-
-                                self._score += (600 - gallerytarget.y) / 100
+                            if gallerytarget.nodeduction:
+                                self._score += 103 - gallerytarget.width
+                                if self._score > 20:
+                                    self._score += (600 - gallerytarget.y) / 100
                             images_shown -= 1
                             fired = False
                             self._missle.y = -10
                             self._explosions = gallerytarget.getexploded_images()
-                            explosion = self._explosions.pop(0)
-                            for b in gallerytarget.get_bomb(last_x):
-                                self._bombs.append(b)
+                            if  gallerytarget.nodeduction:
+                                explosion = self._explosions.pop(0)
+                                for b in gallerytarget.get_bomb(last_x):
+                                    self._bombs.append(b)
                 else:
-                    if images_shown < 6:
+                    if images_shown < len(self._targets):
                         zz = random.randint(1, 100)
                         if zz < 50:
                             gallerytarget.shown = True
