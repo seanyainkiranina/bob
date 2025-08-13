@@ -14,6 +14,7 @@ from pygame.locals import (
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
 from target import Target  # type: ignore # Importing Target class from target module
+from score import Score  # pyright: ignore[reportMissingImports]
 
 
 class Game:
@@ -36,12 +37,26 @@ class Game:
         self._max_score = 0
         self._bombs = []
         self._game_over_images = []
+        self._score_board = Score()
+        self._font = None
 
     def load_resources(self):
         """Load images, sounds, and other resources here"""
         self._player = Target("player", 400, 550, 780, 20)
         self._missle = Target("missle", 400, 610)
-        filenames = ["pacman", "keyboard", "intelli", "kong", "et", "enemy", "5200","ghost1","ghost2","ghost3","ghost4"]
+        filenames = [
+            "pacman",
+            "keyboard",
+            "intelli",
+            "kong",
+            "et",
+            "enemy",
+            "5200",
+            "ghost1",
+            "ghost2",
+            "ghost3",
+            "ghost4",
+        ]
         last_y = 20
         x = -10
         for filename in filenames:
@@ -55,11 +70,16 @@ class Game:
             if z > 1:
                 gallary_target.shown = True
             self._targets.append(gallary_target)
-            if filename != "ghost1" and filename  !="ghost2" and filename !="ghost3" and filename !="ghost4":
+            if (
+                filename != "ghost1"
+                and filename != "ghost2"
+                and filename != "ghost3"
+                and filename != "ghost4"
+            ):
                 gallary_target.nodeduction = True
                 last_y += gallary_target.height + 10
             if gallary_target.nodeduction:
-                if gallary_target.x <0:
+                if gallary_target.x < 0:
                     gallary_target.x -= gallary_target.width
                 else:
                     gallary_target.x += gallary_target.width
@@ -110,40 +130,54 @@ class Game:
             self._missle.move_up()
             self._screen.blit(self._missle.image, (self._missle.x, self._missle.y))
 
+    def instructions(self):
+        instruct = []
+        instruct.append("Welcome To Irata Warrior")
+        instruct.append("Space bar to fire and arrows to move left and right")
+        instruct.append("Game ends when score is 10 below zero")
+        instruct.append(
+            "Points are lost when target scrolls of the screen, debris impact, or a ghost is shot"
+        )
+        instruct.append("Escape to exit")
+
+        return instruct
+
+    def display_instructions(self, start_y, linstructions):
+        displayInstuct = []
+        self._font = pygame.font.Font(
+            None, 25
+        )  # None uses the default font, 36 is the font size
+        for i in linstructions:
+            t = {}
+            t["text"] = self._font.render(i, True, (255, 255, 255))
+            t["text_rect"] = t["text"].get_rect(topleft=(0, start_y))
+            start_y += 30
+            displayInstuct.append(t)
+        return displayInstuct
+
     def run(self):
         """load screen"""
         self._screen.fill((0, 0, 0))  # Clear the screen with black
-        font = pygame.font.Font(
-            None, 24
+        self._font = pygame.font.Font(
+            None, 30
         )  # None uses the default font, 36 is the font size
+        if self._max_score > 0:
+            self._score_board.value = self._max_score
+            self._score_board.save()
+        high_scores = self._score_board.get_scores()
+
         while self._starting:
-            text = font.render(
-                "Welcome To Irata Warrior", True, (255, 255, 255)
-            )  # White text
-            text_rect = text.get_rect(center=(150, 20))
-
-            text4 = font.render(
-                "Space bar to fire and arrows to move left and right",
-                True,
-                (255, 255, 255),
-            )
-            text4_rect = text4.get_rect(topleft=(0, 99))
-
-            text5 = font.render(
-                "Game ends when score is 10 below zero", True, (255, 255, 255)
-            )
-            text5_rect = text5.get_rect(topleft=(0, 129))
-
-            text6 = font.render("Escape to exit", True, (255, 255, 255))
-            text6_rect = text6.get_rect(topleft=(0, 159))
-
-            text2 = font.render("Press S key to Start", True, (255, 0, 0))  # White text
-            text2_rect = text2.get_rect(center=(150, 600 - 40))
-
+            instruction_messages = []
+            instruction_messages = self.instructions()
             if self._max_score > 0:
-                text3 = font.render(f"Your Score:{self._max_score}", True, (255, 0, 0))
-                text3_rect = text.get_rect(center=(200, 45))
-                self._screen.blit(text3, text3_rect)
+                instruction_messages.append(f"Your Score:{self._max_score}")
+            if len(high_scores) > 0:
+                instruction_messages.append("High Scores")
+            for h in high_scores:
+                instruction_messages.append(h)
+            instruction_messages.append("S to Start")
+
+            text_messages = self.display_instructions(10, instruction_messages)
 
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -156,13 +190,9 @@ class Game:
                 self._starting = False
                 self._running = True
 
-            self._screen.blit(text, text_rect)
-            self._screen.blit(text2, text2_rect)
-            self._screen.blit(text4, text4_rect)
+            for t in text_messages:
+                self._screen.blit(t["text"], t["text_rect"])
 
-            self._screen.blit(text5, text5_rect)
-
-            self._screen.blit(text6, text6_rect)
             pygame.display.update()
 
         if self._running:
@@ -255,11 +285,13 @@ class Game:
                                 self._score += 103 - gallerytarget.width
                                 if self._score > 20:
                                     self._score += (600 - gallerytarget.y) / 100
+                            else:
+                                self._score -= (self._score + 1) / 4
                             images_shown -= 1
                             fired = False
                             self._missle.y = -10
                             self._explosions = gallerytarget.getexploded_images()
-                            if  gallerytarget.nodeduction:
+                            if gallerytarget.nodeduction:
                                 explosion = self._explosions.pop(0)
                                 for b in gallerytarget.get_bomb(last_x):
                                     self._bombs.append(b)
@@ -333,7 +365,7 @@ class Game:
                 bomb.y += 1
                 bomb.x += random.randint(-2, 2)
                 if self.debris_player(bomb, self._player):
-                    self._score -= 2
+                    self._score -= (1 + self._score) / 6
                     self._bombs.remove(bomb)
                 if bomb.y > 600:
                     self._bombs.remove(bomb)
