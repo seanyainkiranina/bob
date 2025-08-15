@@ -39,6 +39,12 @@ class Game:
         self._game_over_images = []
         self._score_board = Score()
         self._font = None
+        self._sound = None
+        self._fire_sound = None
+        self._target_hit_sound = None
+        self._game_over_sound = None
+        self._saved_x = 0
+        self._saved_y = 0
 
     def load_resources(self):
         """Load images, sounds, and other resources here"""
@@ -117,8 +123,8 @@ class Game:
                 missle.y = -10
                 return False
             target.shown = False
-            self.saved_x = target.x
-            self.saved_y = target.y
+            self._saved_x = target.x
+            self._saved_y = target.y
             target.x = target.explode()
             self._explosions = target.getexploded_images()
             return True
@@ -131,30 +137,26 @@ class Game:
             self._screen.blit(self._missle.image, (self._missle.x, self._missle.y))
 
     def instructions(self):
-        """ load the instructions list"""
+        """load the instructions list"""
         instruct = []
         instruct.append("Welcome To Irata Warrior")
         instruct.append("Space bar to fire and arrows to move left and right")
         instruct.append("Game ends when score is 10 below zero")
-        instruct.append(
-            "Points are lost when a target scrolls of the screen, "
-        )
-        instruct.append(
-            "debris impact, or a ghost is shot"
-        )
+        instruct.append("Points are lost when a target scrolls of the screen, ")
+        instruct.append("debris impact, or a ghost is shot")
         instruct.append("Escape to exit")
 
         return instruct
 
     def display_instructions(self, start_y, linstructions):
-        """ display the instruction list """
+        """display the instruction list"""
         display_instuct = []
         self._font = pygame.font.Font(
-            'lib\\PressStart2P-vaV7.ttf', 12
+            "lib\\PressStart2P-vaV7.ttf", 12
         )  # None uses the default font, 36 is the font size
         for i in linstructions:
             t = {}
-            if  i.split(' ')[1] == str(self._max_score):
+            if i.split(" ")[1] == str(self._max_score):
                 t["text"] = self._font.render(i, True, (255, 0, 0))
             else:
                 t["text"] = self._font.render(i, True, (255, 255, 255))
@@ -166,9 +168,23 @@ class Game:
 
     def run(self):
         """load screen"""
+        pygame.mixer.init()
+        if self._sound is None:
+            self._sound = pygame.mixer.Sound("lib\\BeepBox-Song.wav")
+            self._sound.play(1, 1700)
+
+        if self._fire_sound is None:
+            self._fire_sound = pygame.mixer.Sound("lib\\fire.mp3")
+
+        if self._target_hit_sound is None:
+            self._target_hit_sound = pygame.mixer.Sound("lib\\explosion.mp3")
+
+        if self._game_over_sound is None:
+            self._game_over_sound = pygame.mixer.Sound("lib\\nuclear-explosion.mp3")
+
         self._screen.fill((0, 0, 0))  # Clear the screen with black
         self._font = pygame.font.Font(
-            'lib\\PressStart2P-vaV7.ttf', 12
+            "lib\\PressStart2P-vaV7.ttf", 12
         )  # None uses the default font, 36 is the font size
         if self._max_score > 0:
             self._score_board.value = self._max_score
@@ -211,6 +227,7 @@ class Game:
 
     def start(self):
         """Main game loop."""
+        self._sound.stop()
         self._clock = pygame.time.Clock()
         self._targets = []
         self._running = True
@@ -224,6 +241,7 @@ class Game:
         self._bombs = []
         self._game_over_images = []
 
+        end_started = 0
         images_shown = 0
         explosion = None
         fired = False
@@ -236,14 +254,14 @@ class Game:
         self._screen.fill((0, 0, 0))  # Clear the screen with black
         self.load_enemy()
         last = 0
-        difference =0
+        difference = 0
         while self._running:
             if self._max_score < self._score:
                 self._max_score = self._score
             self._screen.fill((0, 0, 0))  # Clear the screen with black
             self._score = round(self._score, 1)
             if last != self._score:
-                difference = round(self._score - last,1)
+                difference = round(self._score - last, 1)
             last = self._score
             self._max_score = round(self._max_score, 1)
             if self._score > -10:
@@ -256,7 +274,7 @@ class Game:
             text_r = self._font.render(f"Points:{difference}", True, (255, 0, 0))
 
             text_right = text.get_rect(topleft=(600, 600 - 20))
-   
+
             for event in pygame.event.get():
                 if event.type == QUIT:
                     self._running = False
@@ -270,6 +288,7 @@ class Game:
                 self._player.move_x_player(1)
             if keys[pygame.K_SPACE]:
                 if not fired and self._score > -10:
+                    self._fire_sound.play()
                     self._missle.x = (
                         self._player.x + self._player.width / 2 - self._missle.width / 2
                     )
@@ -295,6 +314,7 @@ class Game:
                     last_x = gallerytarget.x + gallerytarget.width / 2
                     if fired and self._score > -9:
                         if self.kill_enemy(self._missle, gallerytarget):
+                            self._target_hit_sound.play()
                             if gallerytarget.nodeduction:
                                 self._score += 103 - gallerytarget.width
                                 if self._score > 20:
@@ -327,10 +347,14 @@ class Game:
             self._screen.blit(text, text_rect)
             self._screen.blit(text_r, text_right)
             if explosion is not None:
-                self._screen.blit(explosion, (self.saved_x, self.saved_y))
+                self._screen.blit(explosion, (self._saved_x, self._saved_y))
 
             if self._score < -9 and not game_over_done:
                 game_over_wait += 1
+                end_started += 1
+
+            if end_started == 1:
+                self._game_over_sound.play()
 
             if (
                 self._score < -9
@@ -388,6 +412,7 @@ class Game:
             pygame.display.update()
 
         if game_over_done:
+            self._sound = None
             self.run()
 
         pygame.display.quit()
