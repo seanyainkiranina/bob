@@ -131,6 +131,7 @@ class Game:
             self._screen.blit(self._missle.image, (self._missle.x, self._missle.y))
 
     def instructions(self):
+        """ load the instructions list"""
         instruct = []
         instruct.append("Welcome To Irata Warrior")
         instruct.append("Space bar to fire and arrows to move left and right")
@@ -146,6 +147,7 @@ class Game:
         return instruct
 
     def display_instructions(self, start_y, linstructions):
+        """ display the instruction list """
         displayInstuct = []
         self._font = pygame.font.Font(
             'lib\\PressStart2P-vaV7.ttf', 12
