@@ -137,7 +137,7 @@ class Game:
         instruct.append("Space bar to fire and arrows to move left and right")
         instruct.append("Game ends when score is 10 below zero")
         instruct.append(
-            "Points are lost when target scrolls of the screen, "
+            "Points are lost when a target scrolls of the screen, "
         )
         instruct.append(
             "debris impact, or a ghost is shot"
@@ -148,17 +148,21 @@ class Game:
 
     def display_instructions(self, start_y, linstructions):
         """ display the instruction list """
-        displayInstuct = []
+        display_instuct = []
         self._font = pygame.font.Font(
             'lib\\PressStart2P-vaV7.ttf', 12
         )  # None uses the default font, 36 is the font size
         for i in linstructions:
             t = {}
-            t["text"] = self._font.render(i, True, (255, 255, 255))
-            t["text_rect"] = t["text"].get_rect(topleft=(0, start_y))
+            if  i.split(' ')[1] == str(self._max_score):
+                t["text"] = self._font.render(i, True, (255, 0, 0))
+            else:
+                t["text"] = self._font.render(i, True, (255, 255, 255))
+
+            t["text_rect"] = t["text"].get_rect(topleft=(10, start_y))
             start_y += 30
-            displayInstuct.append(t)
-        return displayInstuct
+            display_instuct.append(t)
+        return display_instuct
 
     def run(self):
         """load screen"""
