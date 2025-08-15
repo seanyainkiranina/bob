@@ -231,23 +231,28 @@ class Game:
         self._clock.tick(60)  # Limit to 60 FPS
         self._screen.fill((0, 0, 0))  # Clear the screen with black
         self.load_enemy()
-        font = pygame.font.Font(
-            None, 20
-        )  # None uses the default font, 36 is the font size
+        last = 0
+        difference =0
         while self._running:
             if self._max_score < self._score:
                 self._max_score = self._score
             self._screen.fill((0, 0, 0))  # Clear the screen with black
             self._score = round(self._score, 1)
+            if last != self._score:
+                difference = round(self._score - last,1)
+            last = self._score
             self._max_score = round(self._max_score, 1)
             if self._score > -10:
-                text = font.render(
+                text = self._font.render(
                     f"Score:{self._score}", True, (255, 255, 255)
                 )  # White text
             else:
-                text = font.render(f"Your Score:{self._max_score}", True, (255, 0, 0))
+                text = self._font.render(f"Score:{self._max_score}", True, (255, 0, 0))
             text_rect = text.get_rect(topleft=(10, 600 - 20))
+            text_r = self._font.render(f"Points:{difference}", True, (255, 0, 0))
 
+            text_right = text.get_rect(topleft=(600, 600 - 20))
+   
             for event in pygame.event.get():
                 if event.type == QUIT:
                     self._running = False
@@ -284,7 +289,7 @@ class Game:
                         gallerytarget.image, (gallerytarget.x, gallerytarget.y)
                     )
                     last_x = gallerytarget.x + gallerytarget.width / 2
-                    if fired:
+                    if fired and self._score > -9:
                         if self.kill_enemy(self._missle, gallerytarget):
                             if gallerytarget.nodeduction:
                                 self._score += 103 - gallerytarget.width
@@ -316,6 +321,7 @@ class Game:
             if self._score > -10:
                 self._screen.blit(self._player.image, (self._player.x, self._player.y))
             self._screen.blit(text, text_rect)
+            self._screen.blit(text_r, text_right)
             if explosion is not None:
                 self._screen.blit(explosion, (self.saved_x, self.saved_y))
 
