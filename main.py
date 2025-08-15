@@ -136,7 +136,10 @@ class Game:
         instruct.append("Space bar to fire and arrows to move left and right")
         instruct.append("Game ends when score is 10 below zero")
         instruct.append(
-            "Points are lost when target scrolls of the screen, debris impact, or a ghost is shot"
+            "Points are lost when target scrolls of the screen, "
+        )
+        instruct.append(
+            "debris impact, or a ghost is shot"
         )
         instruct.append("Escape to exit")
 
@@ -145,7 +148,7 @@ class Game:
     def display_instructions(self, start_y, linstructions):
         displayInstuct = []
         self._font = pygame.font.Font(
-            None, 25
+            'lib\\PressStart2P-vaV7.ttf', 12
         )  # None uses the default font, 36 is the font size
         for i in linstructions:
             t = {}
@@ -159,7 +162,7 @@ class Game:
         """load screen"""
         self._screen.fill((0, 0, 0))  # Clear the screen with black
         self._font = pygame.font.Font(
-            None, 30
+            'lib\\PressStart2P-vaV7.ttf', 12
         )  # None uses the default font, 36 is the font size
         if self._max_score > 0:
             self._score_board.value = self._max_score
