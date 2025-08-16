@@ -15,7 +15,7 @@ from pygame.locals import (
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
 from target import Target  # type: ignore # Importing Target class from target module
 from score import Score  # pyright: ignore[reportMissingImports]
-
+from state import State # pyright: ignore[reportMissingImports]
 
 class Game:
     """Handles initialization, resource loading, and the main game loop."""
@@ -45,6 +45,7 @@ class Game:
         self._game_over_sound = None
         self._saved_x = 0
         self._saved_y = 0
+        self._state = State()
 
     def load_resources(self):
         """Load images, sounds, and other resources here"""
@@ -99,6 +100,7 @@ class Game:
                 if self._score > 19:
                     deduction = deduction * round((self._score / 10), 1)
                 self._score += deduction
+    
 
     def debris_player(self, debris, player):
         """Check for collision between debris and player."""
@@ -240,29 +242,22 @@ class Game:
         self._max_score = 0
         self._bombs = []
         self._game_over_images = []
+        self._state = State()
 
-        end_started = 0
-        images_shown = 0
-        explosion = None
-        fired = False
-        self._score = 0
-        wait = 0
-        game_over_wait = 0
-        game_over_done = False
-        last_x = 0
         self._clock.tick(60)  # Limit to 60 FPS
         self._screen.fill((0, 0, 0))  # Clear the screen with black
         self.load_enemy()
-        last = 0
-        difference = 0
+
+        self._state.game_over_done = False
+
         while self._running:
             if self._max_score < self._score:
                 self._max_score = self._score
             self._screen.fill((0, 0, 0))  # Clear the screen with black
             self._score = round(self._score, 1)
-            if last != self._score:
-                difference = round(self._score - last, 1)
-            last = self._score
+            if self._state.last != self._score:
+                self._state.difference = round(self._score - self._state.last, 1)
+            self._state.last = self._score
             self._max_score = round(self._max_score, 1)
             if self._score > -10:
                 text = self._font.render(
@@ -271,7 +266,7 @@ class Game:
             else:
                 text = self._font.render(f"Score:{self._max_score}", True, (255, 0, 0))
             text_rect = text.get_rect(topleft=(10, 600 - 20))
-            text_r = self._font.render(f"Points:{difference}", True, (255, 0, 0))
+            text_r = self._font.render(f"Points:{self._state.difference}", True, (255, 0, 0))
 
             text_right = text.get_rect(topleft=(600, 600 - 20))
 
@@ -287,32 +282,32 @@ class Game:
             if keys[pygame.K_RIGHT] and self._score > -10:
                 self._player.move_x_player(1)
             if keys[pygame.K_SPACE]:
-                if not fired and self._score > -10:
+                if not self._state.fired and self._score > -10:
                     self._fire_sound.play()
                     self._missle.x = (
                         self._player.x + self._player.width / 2 - self._missle.width / 2
                     )
                     self._missle.y = self._player.y - self._missle.height - 1
-                    fired = True
+                    self._state.fired = True
 
-            if fired:
+            if self._state.fired:
                 self.fire_missle()
                 pygame.display.update(self._missle.rect)  # Update the display
 
             if self._missle.y < 0:
-                fired = False
+                self._state.fired = False
                 self._missle.y = 650
 
             self.load_enemy()
-            images_shown = 0
+            self._state.images_shown = 0
             for gallerytarget in self._targets:
                 if gallerytarget.shown:
-                    images_shown += 1
+                    self._state.images_shown += 1
                     self._screen.blit(
                         gallerytarget.image, (gallerytarget.x, gallerytarget.y)
                     )
-                    last_x = gallerytarget.x + gallerytarget.width / 2
-                    if fired and self._score > -9:
+                    self._state.last_x = gallerytarget.x + gallerytarget.width / 2
+                    if self._state.fired and self._score > -9:
                         if self.kill_enemy(self._missle, gallerytarget):
                             self._target_hit_sound.play()
                             if gallerytarget.nodeduction:
@@ -321,20 +316,20 @@ class Game:
                                     self._score += (600 - gallerytarget.y) / 100
                             else:
                                 self._score -= (self._score + 1) / 4
-                            images_shown -= 1
-                            fired = False
+                            self._state.images_shown -= 1
+                            self._state.fired = False
                             self._missle.y = -10
                             self._explosions = gallerytarget.getexploded_images()
                             if gallerytarget.nodeduction:
-                                explosion = self._explosions.pop(0)
-                                for b in gallerytarget.get_bomb(last_x):
+                                self._state.explosion = self._explosions.pop(0)
+                                for b in gallerytarget.get_bomb(self._state.last_x):
                                     self._bombs.append(b)
                 else:
-                    if images_shown < len(self._targets):
+                    if self._state.images_shown < len(self._targets):
                         zz = random.randint(1, 100)
                         if zz < 50:
                             gallerytarget.shown = True
-                            images_shown += 1
+                            self._state.images_shown += 1
                             if gallerytarget.start_x < 0:
                                 gallerytarget.start_x = 810
                                 gallerytarget.x = 810
@@ -344,74 +339,72 @@ class Game:
 
             if self._score > -10:
                 self._screen.blit(self._player.image, (self._player.x, self._player.y))
+            if self._state.explosion is not None:
+                self._screen.blit(self._state.explosion, (self._saved_x, self._saved_y))
+
             self._screen.blit(text, text_rect)
             self._screen.blit(text_r, text_right)
-            if explosion is not None:
-                self._screen.blit(explosion, (self._saved_x, self._saved_y))
 
-            if self._score < -9 and not game_over_done:
-                game_over_wait += 1
-                end_started += 1
+            if self._score < -9 and not self._state.game_over_done:
+                self._state.game_over_wait += 1
+                self._state.end_started += 1
 
-            if end_started == 1:
+            if self._state.end_started == 1:
                 self._game_over_sound.play()
 
             if (
                 self._score < -9
                 and len(self._game_over_images) == 0
-                and not game_over_done
+                and not self._state.game_over_done
             ):
                 self._game_over_images = self._player.get_game_over_images()
-                game_over_wait = 10001
+                self._state.game_over_wait = 10001
 
             if (
                 self._score < -9
-                and (game_over_wait > 99)
+                and (self._state.game_over_wait > 99)
                 and len(self._game_over_images) > 0
-                and not game_over_done
+                and not self._state.game_over_done
             ):
                 game_over_image = self._game_over_images.pop(0)
                 self._screen.blit(
                     game_over_image, (self._player.x, self._player.y - 50)
                 )
-                game_over_wait = 1
+                self._state.game_over_wait = 1
                 if len(self._game_over_images) == 0:
                     self._running = False
-                    game_over_done = True
+                    self._state.game_over_done = True
             else:
                 if len(self._game_over_images) == 0 and self._score < -9:
-                    game_over_done = True
+                    self._state.game_over_done = True
 
-            # if not game_over_done and len(self._game_over_images) == 0:
-            #     game_over_done = True
-
-            if game_over_wait > 0 and not game_over_done:
+            if self._state.game_over_wait > 0 and not self._state.game_over_done:
                 self._screen.blit(
                     game_over_image, (self._player.x, self._player.y - 50)
                 )
 
-            if explosion is not None and wait > 10:
+            if self._state.explosion is not None and self._state.wait > 10:
                 if len(self._explosions) > 0:
-                    explosion = self._explosions.pop(0)
+                    self._state.explosion = self._explosions.pop(0)
                 else:
-                    explosion = None
-                wait = 0
-            if explosion is not None:
-                wait += 1
+                    self._state.explosion = None
+                self._state.wait = 0
+            if self._state.explosion is not None:
+                self._state.wait += 1
 
             for bomb in self._bombs:
                 self._screen.blit(bomb.getimage(), (bomb.x, bomb.y))
                 bomb.y += 1
                 bomb.x += random.randint(-2, 2)
                 if self.debris_player(bomb, self._player):
-                    self._score -= (1 + self._score) / 6
+                    self._score -= (1 + self._score) / 2
                     self._bombs.remove(bomb)
                 if bomb.y > 600:
                     self._bombs.remove(bomb)
 
             pygame.display.update()
 
-        if game_over_done:
+        if self._state.game_over_done:
             self._sound = None
             self.run()
 
