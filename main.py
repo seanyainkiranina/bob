@@ -94,7 +94,7 @@ class Game:
 
     def load_enemy(self):
         """Load and display enemies and other game elements."""
-        speed = int(round(((self._max_score + 1) / 100) + 1,0))
+        speed = int(round(((self._max_score + 1) / 100) + 1, 0))
         for gallerytarget in self._targets:
             rr = random.randint(1, 100)
             if rr > 75 and gallerytarget.shown:
@@ -170,7 +170,7 @@ class Game:
         return display_instuct
 
     def exploded_target(self):
-        """ explode a target """
+        """explode a target"""
         if self._state.explosion is not None and self._state.wait > 10:
             if len(self._explosions) > 0:
                 self._state.explosion = self._explosions.pop(0)
@@ -316,6 +316,7 @@ class Game:
 
     def target_movement(self):
         """target movement"""
+        r = random.randrange(1,300)
         for gallerytarget in self._targets:
             if gallerytarget.shown:
                 self._state.images_shown += 1
@@ -328,11 +329,14 @@ class Game:
                         self._state.shots_fired = 0
                         self._target_hit_sound.play()
                         if gallerytarget.nodeduction:
-                            self._score += 103 - gallerytarget.width
-                            if self._score > 20:
-                                self._score += ((600 - gallerytarget.y) / 100) * self._state.bonus
+                            if self._max_score < r:
+                                self._score += ( 103 - gallerytarget.width ) * self._state.bonus
+                            else:
+                                self._score += (
+                                    (600 - gallerytarget.y) / 100
+                                ) * self._state.bonus
                         else:
-                            self._score -= (self._score + 1) / 4
+                            self._score -= (abs(self._score) + 1) / 4
                         self._state.images_shown -= 1
                         self._state.fired = False
                         self._missle.y = -10
