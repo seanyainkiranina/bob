@@ -14,6 +14,31 @@ class State:
         self._last_x = 0
         self._last = 0
         self._difference = 0
+        self._shots_fired = 0
+        self._bonus = 3
+
+    @property
+    def shots_fired(self):
+        """get shots fired"""
+        return self._shots_fired
+
+    @shots_fired.setter
+    def shots_fired(self, value):
+        """set shots fired"""
+        self._shots_fired += value
+        if value == 0:
+            self._shots_fired = 0
+        if self._shots_fired < 4:
+            self._bonus = 3
+        if self._shots_fired > 3 and self._shots_fired < 10:
+            self._bonus = 2
+        if self._shots_fired > 9:
+            self._bonus = 1
+
+    @property
+    def bonus(self):
+        """get bonus"""
+        return self._bonus
 
     @property
     def game_over_image(self):

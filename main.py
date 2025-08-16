@@ -325,11 +325,12 @@ class Game:
                 self._state.last_x = gallerytarget.x + gallerytarget.width / 2
                 if self._state.fired and self._score > -9:
                     if self.kill_enemy(self._missle, gallerytarget):
+                        self._state.shots_fired = 0
                         self._target_hit_sound.play()
                         if gallerytarget.nodeduction:
                             self._score += 103 - gallerytarget.width
                             if self._score > 20:
-                                self._score += (600 - gallerytarget.y) / 100
+                                self._score += ((600 - gallerytarget.y) / 100) * self._state.bonus
                         else:
                             self._score -= (self._score + 1) / 4
                         self._state.images_shown -= 1
@@ -370,6 +371,7 @@ class Game:
             self._player.move_x_player(1)
         if keys[pygame.K_SPACE]:
             if not self._state.fired and self._score > -10:
+                self._state.shots_fired = 1
                 self._fire_sound.play()
                 self._missle.x = (
                     self._player.x + self._player.width / 2 - self._missle.width / 2
