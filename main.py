@@ -15,7 +15,8 @@ from pygame.locals import (
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
 from target import Target  # type: ignore # Importing Target class from target module
 from score import Score  # pyright: ignore[reportMissingImports]
-from state import State # pyright: ignore[reportMissingImports]
+from state import State  # pyright: ignore[reportMissingImports]
+
 
 class Game:
     """Handles initialization, resource loading, and the main game loop."""
@@ -93,14 +94,14 @@ class Game:
 
     def load_enemy(self):
         """Load and display enemies and other game elements."""
+        speed = int(round(((self._max_score + 1) / 100) + 1,0))
         for gallerytarget in self._targets:
             rr = random.randint(1, 100)
             if rr > 75 and gallerytarget.shown:
-                deduction = gallerytarget.move_x_target(random.randint(0, 2))
+                deduction = gallerytarget.move_x_target(random.randint(0, speed))
                 if self._score > 19:
                     deduction = deduction * round((self._score / 10), 1)
                 self._score += deduction
-    
 
     def debris_player(self, debris, player):
         """Check for collision between debris and player."""
@@ -168,6 +169,27 @@ class Game:
             display_instuct.append(t)
         return display_instuct
 
+    def exploded_target(self):
+        """ explode a target """
+        if self._state.explosion is not None and self._state.wait > 10:
+            if len(self._explosions) > 0:
+                self._state.explosion = self._explosions.pop(0)
+            else:
+                self._state.explosion = None
+            self._state.wait = 0
+        if self._state.explosion is not None:
+            self._state.wait += 1
+
+        for bomb in self._bombs:
+            self._screen.blit(bomb.getimage(), (bomb.x, bomb.y))
+            bomb.y += 1
+            bomb.x += random.randint(-1, 1)
+            if self.debris_player(bomb, self._player):
+                self._score -= (1 + self._score) / 2
+                self._bombs.remove(bomb)
+            if bomb.y > 600:
+                self._bombs.remove(bomb)
+
     def run(self):
         """load screen"""
         pygame.mixer.init()
@@ -227,6 +249,145 @@ class Game:
 
         pygame.display.quit()
 
+    def render_score(self):
+        """Show score"""
+        if self._max_score < self._score:
+            self._max_score = self._score
+        self._screen.fill((0, 0, 0))  # Clear the screen with black
+        self._score = round(self._score, 1)
+        if self._state.last != self._score:
+            self._state.difference = round(self._score - self._state.last, 1)
+        self._state.last = self._score
+        self._max_score = round(self._max_score, 1)
+        if self._score > -10:
+            text = self._font.render(
+                f"Score:{self._score}", True, (255, 255, 255)
+            )  # White text
+        else:
+            text = self._font.render(f"Score:{self._max_score}", True, (255, 0, 0))
+        text_rect = text.get_rect(topleft=(10, 600 - 20))
+        text_r = self._font.render(
+            f"Points:{self._state.difference}", True, (255, 0, 0)
+        )
+
+        text_right = text.get_rect(topleft=(600, 600 - 20))
+        self._screen.blit(text, text_rect)
+        self._screen.blit(text_r, text_right)
+
+    def game_over(self):
+        """game over"""
+        if self._score < -9 and not self._state.game_over_done:
+            self._state.game_over_wait += 1
+            self._state.end_started += 1
+
+        if self._state.end_started == 1:
+            self._game_over_sound.play()
+
+        if (
+            self._score < -9
+            and len(self._game_over_images) == 0
+            and not self._state.game_over_done
+        ):
+            self._game_over_images = self._player.get_game_over_images()
+            self._state.game_over_wait = 10001
+
+        if (
+            self._score < -9
+            and (self._state.game_over_wait > 99)
+            and len(self._game_over_images) > 0
+            and not self._state.game_over_done
+        ):
+            self._state.game_over_image = self._game_over_images.pop(0)
+            self._screen.blit(
+                self._state.game_over_image, (self._player.x, self._player.y - 50)
+            )
+            self._state.game_over_wait = 1
+            if len(self._game_over_images) == 0:
+                self._running = False
+                self._state.game_over_done = True
+        else:
+            if len(self._game_over_images) == 0 and self._score < -9:
+                self._state.game_over_done = True
+
+        if self._state.game_over_wait > 0 and not self._state.game_over_done:
+            self._screen.blit(
+                self._state.game_over_image, (self._player.x, self._player.y - 50)
+            )
+
+    def target_movement(self):
+        """target movement"""
+        for gallerytarget in self._targets:
+            if gallerytarget.shown:
+                self._state.images_shown += 1
+                self._screen.blit(
+                    gallerytarget.image, (gallerytarget.x, gallerytarget.y)
+                )
+                self._state.last_x = gallerytarget.x + gallerytarget.width / 2
+                if self._state.fired and self._score > -9:
+                    if self.kill_enemy(self._missle, gallerytarget):
+                        self._target_hit_sound.play()
+                        if gallerytarget.nodeduction:
+                            self._score += 103 - gallerytarget.width
+                            if self._score > 20:
+                                self._score += (600 - gallerytarget.y) / 100
+                        else:
+                            self._score -= (self._score + 1) / 4
+                        self._state.images_shown -= 1
+                        self._state.fired = False
+                        self._missle.y = -10
+                        self._explosions = gallerytarget.getexploded_images()
+                        if gallerytarget.nodeduction:
+                            self._state.explosion = self._explosions.pop(0)
+                            for b in gallerytarget.get_bomb(self._state.last_x):
+                                self._bombs.append(b)
+            else:
+                if self._state.images_shown < len(self._targets):
+                    zz = random.randint(1, 100)
+                    if zz < 50:
+                        gallerytarget.shown = True
+                        self._state.images_shown += 1
+                        if gallerytarget.start_x < 0:
+                            gallerytarget.start_x = 810
+                            gallerytarget.x = 810
+                        else:
+                            gallerytarget.start_x = -10
+                            gallerytarget.x = -10
+        if self._state.explosion is not None:
+            self._screen.blit(self._state.explosion, (self._saved_x, self._saved_y))
+
+    def player_movement_missle_movement(self):
+        """player movement"""
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                self._running = False
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_ESCAPE]:
+            self._running = False
+
+        if keys[pygame.K_LEFT] and self._score > -10:
+            self._player.move_x_player(-1)
+        if keys[pygame.K_RIGHT] and self._score > -10:
+            self._player.move_x_player(1)
+        if keys[pygame.K_SPACE]:
+            if not self._state.fired and self._score > -10:
+                self._fire_sound.play()
+                self._missle.x = (
+                    self._player.x + self._player.width / 2 - self._missle.width / 2
+                )
+                self._missle.y = self._player.y - self._missle.height - 1
+                self._state.fired = True
+
+        if self._state.fired:
+            self.fire_missle()
+            pygame.display.update(self._missle.rect)  # Update the display
+
+        if self._missle.y < 0:
+            self._state.fired = False
+            self._missle.y = 650
+
+        if self._score > -10:
+            self._screen.blit(self._player.image, (self._player.x, self._player.y))
+
     def start(self):
         """Main game loop."""
         self._sound.stop()
@@ -251,157 +412,15 @@ class Game:
         self._state.game_over_done = False
 
         while self._running:
-            if self._max_score < self._score:
-                self._max_score = self._score
-            self._screen.fill((0, 0, 0))  # Clear the screen with black
-            self._score = round(self._score, 1)
-            if self._state.last != self._score:
-                self._state.difference = round(self._score - self._state.last, 1)
-            self._state.last = self._score
-            self._max_score = round(self._max_score, 1)
-            if self._score > -10:
-                text = self._font.render(
-                    f"Score:{self._score}", True, (255, 255, 255)
-                )  # White text
-            else:
-                text = self._font.render(f"Score:{self._max_score}", True, (255, 0, 0))
-            text_rect = text.get_rect(topleft=(10, 600 - 20))
-            text_r = self._font.render(f"Points:{self._state.difference}", True, (255, 0, 0))
-
-            text_right = text.get_rect(topleft=(600, 600 - 20))
-
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    self._running = False
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_ESCAPE]:
-                self._running = False
-
-            if keys[pygame.K_LEFT] and self._score > -10:
-                self._player.move_x_player(-1)
-            if keys[pygame.K_RIGHT] and self._score > -10:
-                self._player.move_x_player(1)
-            if keys[pygame.K_SPACE]:
-                if not self._state.fired and self._score > -10:
-                    self._fire_sound.play()
-                    self._missle.x = (
-                        self._player.x + self._player.width / 2 - self._missle.width / 2
-                    )
-                    self._missle.y = self._player.y - self._missle.height - 1
-                    self._state.fired = True
-
-            if self._state.fired:
-                self.fire_missle()
-                pygame.display.update(self._missle.rect)  # Update the display
-
-            if self._missle.y < 0:
-                self._state.fired = False
-                self._missle.y = 650
-
+            self.render_score()
+            self.player_movement_missle_movement()
             self.load_enemy()
             self._state.images_shown = 0
-            for gallerytarget in self._targets:
-                if gallerytarget.shown:
-                    self._state.images_shown += 1
-                    self._screen.blit(
-                        gallerytarget.image, (gallerytarget.x, gallerytarget.y)
-                    )
-                    self._state.last_x = gallerytarget.x + gallerytarget.width / 2
-                    if self._state.fired and self._score > -9:
-                        if self.kill_enemy(self._missle, gallerytarget):
-                            self._target_hit_sound.play()
-                            if gallerytarget.nodeduction:
-                                self._score += 103 - gallerytarget.width
-                                if self._score > 20:
-                                    self._score += (600 - gallerytarget.y) / 100
-                            else:
-                                self._score -= (self._score + 1) / 4
-                            self._state.images_shown -= 1
-                            self._state.fired = False
-                            self._missle.y = -10
-                            self._explosions = gallerytarget.getexploded_images()
-                            if gallerytarget.nodeduction:
-                                self._state.explosion = self._explosions.pop(0)
-                                for b in gallerytarget.get_bomb(self._state.last_x):
-                                    self._bombs.append(b)
-                else:
-                    if self._state.images_shown < len(self._targets):
-                        zz = random.randint(1, 100)
-                        if zz < 50:
-                            gallerytarget.shown = True
-                            self._state.images_shown += 1
-                            if gallerytarget.start_x < 0:
-                                gallerytarget.start_x = 810
-                                gallerytarget.x = 810
-                            else:
-                                gallerytarget.start_x = -10
-                                gallerytarget.x = -10
 
-            if self._score > -10:
-                self._screen.blit(self._player.image, (self._player.x, self._player.y))
-            if self._state.explosion is not None:
-                self._screen.blit(self._state.explosion, (self._saved_x, self._saved_y))
+            self.game_over()
 
-            self._screen.blit(text, text_rect)
-            self._screen.blit(text_r, text_right)
-
-            if self._score < -9 and not self._state.game_over_done:
-                self._state.game_over_wait += 1
-                self._state.end_started += 1
-
-            if self._state.end_started == 1:
-                self._game_over_sound.play()
-
-            if (
-                self._score < -9
-                and len(self._game_over_images) == 0
-                and not self._state.game_over_done
-            ):
-                self._game_over_images = self._player.get_game_over_images()
-                self._state.game_over_wait = 10001
-
-            if (
-                self._score < -9
-                and (self._state.game_over_wait > 99)
-                and len(self._game_over_images) > 0
-                and not self._state.game_over_done
-            ):
-                game_over_image = self._game_over_images.pop(0)
-                self._screen.blit(
-                    game_over_image, (self._player.x, self._player.y - 50)
-                )
-                self._state.game_over_wait = 1
-                if len(self._game_over_images) == 0:
-                    self._running = False
-                    self._state.game_over_done = True
-            else:
-                if len(self._game_over_images) == 0 and self._score < -9:
-                    self._state.game_over_done = True
-
-            if self._state.game_over_wait > 0 and not self._state.game_over_done:
-                self._screen.blit(
-                    game_over_image, (self._player.x, self._player.y - 50)
-                )
-
-            if self._state.explosion is not None and self._state.wait > 10:
-                if len(self._explosions) > 0:
-                    self._state.explosion = self._explosions.pop(0)
-                else:
-                    self._state.explosion = None
-                self._state.wait = 0
-            if self._state.explosion is not None:
-                self._state.wait += 1
-
-            for bomb in self._bombs:
-                self._screen.blit(bomb.getimage(), (bomb.x, bomb.y))
-                bomb.y += 1
-                bomb.x += random.randint(-2, 2)
-                if self.debris_player(bomb, self._player):
-                    self._score -= (1 + self._score) / 2
-                    self._bombs.remove(bomb)
-                if bomb.y > 600:
-                    self._bombs.remove(bomb)
-
+            self.target_movement()
+            self.exploded_target()
             pygame.display.update()
 
         if self._state.game_over_done:
