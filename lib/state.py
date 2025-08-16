@@ -1,5 +1,5 @@
 class State:
-    """ state handles game state """
+    """state handles game state"""
 
     def __init__(self, data=None):
         self._data = data or {}
@@ -7,12 +7,23 @@ class State:
         self._images_shown = 0
         self._explosion = None
         self._fired = False
+        self._game_over_image = None
         self._wait = 0
         self._game_over_wait = 0
         self._game_over_done = False
         self._last_x = 0
         self._last = 0
         self._difference = 0
+
+    @property
+    def game_over_image(self):
+        """get game over image"""
+        return self._game_over_image
+
+    @game_over_image.setter
+    def game_over_image(self, value):
+        """set game over image"""
+        self._game_over_image = value
 
     @property
     def end_started(self):

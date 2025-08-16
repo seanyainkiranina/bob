@@ -19,6 +19,7 @@ class Score:
         """get scores"""
         score_board = []
         score_counter = 0
+        last_value =0
         db_path = "lib/scores.db"
         connection = sqlite3.connect(db_path)
         cursor = connection.cursor()
@@ -29,9 +30,13 @@ class Score:
         for row in cursor.fetchall():
             score_counter += 1
             if score_counter<11:
+                last_value = row[0]
                 score_board.append(str(score_counter) + " "  + str(round(row[0],1)))
 
+        cursor.execute("delete from scores where value <" + str(last_value) )
         connection.commit()
+
+
         connection.close()
         return score_board
 
