@@ -124,6 +124,7 @@ class Game:
         ):
             if target.name == "5200":
                 missle.y = -10
+                self._score -=1
                 return False
             target.shown = False
             self._saved_x = target.x
@@ -146,7 +147,7 @@ class Game:
         instruct.append("Space bar to fire and arrows to move left and right")
         instruct.append("Game ends when score is 10 below zero")
         instruct.append("Points are lost when a target scrolls of the screen, ")
-        instruct.append("debris impact, or a ghost is shot")
+        instruct.append("debris impact, controller is shot,  or a ghost is shot")
         instruct.append("Escape to exit")
 
         return instruct
