@@ -147,8 +147,8 @@ class Game:
         instruct.append("Space bar to fire and arrows to move left and right")
         instruct.append("Game ends when score is 10 below zero")
         instruct.append("Points are lost when a target scrolls of the screen, ")
-        instruct.append("debris impact, controller is shot,  or a ghost is shot")
-        instruct.append("Escape to exit")
+        instruct.append("upon debris impact, the controller, or a ghost is shot.")
+        instruct.append("Esc to exit")
 
         return instruct
 
@@ -156,7 +156,7 @@ class Game:
         """display the instruction list"""
         display_instuct = []
         self._font = pygame.font.Font(
-            "lib\\PressStart2P-vaV7.ttf", 12
+            "lib\\PressStart2P-vaV7.ttf", 11
         )  # None uses the default font, 36 is the font size
         for i in linstructions:
             t = {}
@@ -166,7 +166,7 @@ class Game:
                 t["text"] = self._font.render(i, True, (255, 255, 255))
 
             t["text_rect"] = t["text"].get_rect(topleft=(10, start_y))
-            start_y += 30
+            start_y += 16
             display_instuct.append(t)
         return display_instuct
 
