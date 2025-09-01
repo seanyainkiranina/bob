@@ -124,7 +124,7 @@ class Game:
         ):
             if target.name == "5200":
                 missle.y = -10
-                self._score -=1
+                self._score -= 1
                 return False
             target.shown = False
             self._saved_x = target.x
@@ -225,6 +225,10 @@ class Game:
                 instruction_messages.append("High Scores")
             for h in high_scores:
                 instruction_messages.append(h)
+            instruction_messages.append("Points for targets are random,")
+            instruction_messages.append(
+                "with the most points given for smaller size or distant items."
+            )
             instruction_messages.append("S to Start")
 
             text_messages = self.display_instructions(10, instruction_messages)
@@ -317,7 +321,7 @@ class Game:
 
     def target_movement(self):
         """target movement"""
-        r = random.randrange(1,300)
+        r = random.randrange(1, 300)
         for gallerytarget in self._targets:
             if gallerytarget.shown:
                 self._state.images_shown += 1
@@ -331,7 +335,9 @@ class Game:
                         self._target_hit_sound.play()
                         if gallerytarget.nodeduction:
                             if self._max_score < r:
-                                self._score += ( 103 - gallerytarget.width ) * self._state.bonus
+                                self._score += (
+                                    103 - gallerytarget.width
+                                ) * self._state.bonus
                             else:
                                 self._score += (
                                     (600 - gallerytarget.y) / 100
