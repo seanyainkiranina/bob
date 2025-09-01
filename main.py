@@ -66,6 +66,7 @@ class Game:
             "ghost4",
         ]
         last_y = 20
+        random.shuffle(filenames)
         x = -10
         for filename in filenames:
             r = random.randint(1, 100)
