@@ -116,12 +116,12 @@ class Target:
         """Get a bullet"""
         bombs = self.get_bullets(x)
         b = []
-        total_bombs = random.randint(1, 5)
+        total_bombs = random.randint(1, 8)
         lb = 0
         while lb < total_bombs:
             which_bomb = random.randint(0, len(bombs) - 1)
             bomb = bombs[which_bomb]
-            bomb.x = bomb.x + random.randint(-2, 4)
+            bomb.x = bomb.x + random.randint(-1, 3)
             bomb.y = bomb.y + random.randint(-4, 4)
             b.append(bombs[which_bomb])
             lb += 1
@@ -150,7 +150,7 @@ class Target:
     def getexploded_images(self):
         """Returns a list of exploded images for the target."""
         exploded_images = []
-        for i in range(0, 5):
+        for i in range(0, 4):
             image_path = os.path.join(self._data_dir, f"enemy_boom{i}.png")
             if os.path.exists(image_path):
                 exploded_images.append(pygame.image.load(image_path))

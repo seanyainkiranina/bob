@@ -47,6 +47,7 @@ class Game:
         self._saved_x = 0
         self._saved_y = 0
         self._state = State()
+        self._counter_5200 = 1
 
     def load_resources(self):
         """Load images, sounds, and other resources here"""
@@ -125,7 +126,13 @@ class Game:
         ):
             if target.name == "5200":
                 missle.y = -10
-                self._score -= 1
+                self._counter_5200 += 1
+                self._score -= self._counter_5200
+                if self._score < -9:
+                    self.render_score()
+                    self.game_over()
+                if self._counter_5200 > 2:
+                    self._counter_5200 = 1
                 return False
             target.shown = False
             self._saved_x = target.x
@@ -155,6 +162,7 @@ class Game:
 
     def display_instructions(self, start_y, linstructions):
         """display the instruction list"""
+        self._counter_5200 = 1
         display_instuct = []
         self._font = pygame.font.Font(
             "lib\\PressStart2P-vaV7.ttf", 11
@@ -351,7 +359,7 @@ class Game:
                         self._explosions = gallerytarget.getexploded_images()
                         if gallerytarget.nodeduction:
                             self._state.explosion = self._explosions.pop(0)
-                            for b in gallerytarget.get_bomb(self._state.last_x):
+                            for b in gallerytarget.get_bomb(self._player.x):
                                 self._bombs.append(b)
             else:
                 if self._state.images_shown < len(self._targets):
