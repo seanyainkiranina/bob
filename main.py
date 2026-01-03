@@ -128,7 +128,7 @@ class Game:
                 missle.y = -10
                 self._counter_5200 += 1
                 self._score -= self._counter_5200
-                if self._score < -9:
+                if self._score < -10:
                     self.render_score()
                     self.game_over()
                 if self._counter_5200 > 2:
