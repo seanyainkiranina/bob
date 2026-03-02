@@ -181,6 +181,7 @@ class Game:
 
     def exploded_target(self):
         """explode a target"""
+        bombs_to_remove = []
         if self._state.explosion is not None and self._state.wait > 10:
             if len(self._explosions) > 0:
                 self._state.explosion = self._explosions.pop(0)
@@ -194,10 +195,20 @@ class Game:
             self._screen.blit(bomb.getimage(), (bomb.x, bomb.y))
             bomb.y += 1
             bomb.x += random.randint(-1, 1)
+            for gallerytarget in self._targets:
+                if gallerytarget.shown:
+                    if self.kill_enemy(bomb, gallerytarget):
+                        bombs_to_remove.append(bomb)
+                        gallerytarget.shown = False
+                        self._state.images_shown -= 1
+        for bomb in self._bombs:
             if self.debris_player(bomb, self._player):
                 self._score -= (1 + self._score) / 2
-                self._bombs.remove(bomb)
+                bombs_to_remove.append(bomb)
             if bomb.y > 600:
+                bombs_to_remove.append(bomb)
+        for bomb in bombs_to_remove:
+            if bomb in self._bombs: 
                 self._bombs.remove(bomb)
 
     def run(self):
