@@ -96,7 +96,7 @@ class Game:
 
     def load_enemy(self):
         """Load and display enemies and other game elements."""
-        speed = int(round(((self._max_score + 1) / 100) + 1, 0))
+        speed = int(round(((self._max_score + 1) / 300) + 1, 0))
         for gallerytarget in self._targets:
             rr = random.randint(1, 100)
             if rr > 75 and gallerytarget.shown:
@@ -201,7 +201,10 @@ class Game:
                         bombs_to_remove.append(bomb)
                         gallerytarget.shown = False
                         self._state.images_shown -= 1
-                        self._score += random.randint(1, (round(bomb.y/5)+10)) * self._state.bonus
+                        self._score += (
+                            random.randint(1, (round(bomb.y / 5) + 10))
+                            * self._state.bonus
+                        )
                         for b in gallerytarget.get_bomb(bomb.x):
                             if len(self._bombs) < 10:
                                 self._bombs.append(b)
@@ -212,7 +215,7 @@ class Game:
             if bomb.y > 600:
                 bombs_to_remove.append(bomb)
         for bomb in bombs_to_remove:
-            if bomb in self._bombs: 
+            if bomb in self._bombs:
                 self._bombs.remove(bomb)
 
     def run(self):
