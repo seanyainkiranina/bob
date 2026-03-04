@@ -116,12 +116,12 @@ class Target:
         """Get a bullet"""
         bombs = self.get_bullets(x)
         b = []
-        total_bombs = random.randint(1, 20)
+        total_bombs = random.randint(1, 7)
         lb = 0
         while lb < total_bombs:
             which_bomb = random.randint(0, len(bombs) - 1)
             bomb = bombs[which_bomb]
-            bomb.x = bomb.x + random.randint(-1, 2)
+            bomb.x = x + random.randint(-2, 2)
             bomb.y = bomb.y + random.randint(-3, 4)
             b.append(bombs[which_bomb])
             lb += 1

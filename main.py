@@ -201,7 +201,10 @@ class Game:
                         bombs_to_remove.append(bomb)
                         gallerytarget.shown = False
                         self._state.images_shown -= 1
-                        self._score += random.randint(1, (round(bomb.y/100)+2)) * self._state.bonus
+                        self._score += random.randint(1, (round(bomb.y/5)+10)) * self._state.bonus
+                        for b in gallerytarget.get_bomb(bomb.x):
+                            if len(self._bombs) < 10:
+                                self._bombs.append(b)
         for bomb in self._bombs:
             if self.debris_player(bomb, self._player):
                 self._score -= (1 + self._score) / 2
