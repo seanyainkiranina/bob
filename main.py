@@ -201,10 +201,11 @@ class Game:
                         bombs_to_remove.append(bomb)
                         gallerytarget.shown = False
                         self._state.images_shown -= 1
-                        self._score += (
-                            random.randint(1, (round(bomb.y / 5) + 10))
-                            * self._state.bonus
-                        )
+                        if self._score > -1:
+                            self._score += (
+                                random.randint(1, (round(bomb.y / 3) + 10))
+                                * self._state.bonus
+                            )
                         for b in gallerytarget.get_bomb(bomb.x):
                             if len(self._bombs) < 10:
                                 self._bombs.append(b)
@@ -320,6 +321,7 @@ class Game:
             and len(self._game_over_images) == 0
             and not self._state.game_over_done
         ):
+            self._state.fired = True
             self._game_over_images = self._player.get_game_over_images()
             self._state.game_over_wait = 10001
 
@@ -329,6 +331,7 @@ class Game:
             and len(self._game_over_images) > 0
             and not self._state.game_over_done
         ):
+            self._state.fired = True
             self._state.game_over_image = self._game_over_images.pop(0)
             self._screen.blit(
                 self._state.game_over_image, (self._player.x, self._player.y - 50)
@@ -362,14 +365,15 @@ class Game:
                         self._target_hit_sound.play()
                         if gallerytarget.nodeduction:
                             if self._max_score < r:
-                                self._score += (
-                                    103 - gallerytarget.width
-                                ) * self._state.bonus
+                                if self._score > -9:
+                                    self._score += (
+                                        103 - gallerytarget.width
+                                    ) * self._state.bonus
                             else:
-                                self._score += (
-                                    (600 - gallerytarget.y) / 100
-                                ) * self._state.bonus
-                        else:
+                                if self._score > -9:
+                                    self._score += (
+                                            (600 - gallerytarget.y) / 100
+                                        ) * self._state.bonus
                             self._score -= (abs(self._score) + 1) / 4
                         self._state.images_shown -= 1
                         self._state.fired = False
