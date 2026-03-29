@@ -33,15 +33,27 @@ class Target:
         self._min_y = minY
         self._start_x = x
         self._bullets = []
+        self._last = 0
         self._nodeduction = False
 
     @property
+    def last(self):
+        """last"""
+        return self._last
+
+    @last.setter
+    def last(self, value):
+        self._last = value
+
+    @property
     def nodeduction(self):
-        """nodeduction """
+        """nodeduction"""
         return self._nodeduction
+
     @nodeduction.setter
-    def nodeduction(self,value):
-        self._nodeduction = value 
+    def nodeduction(self, value):
+        self._nodeduction = value
+
     @property
     def rect(self):
         """Returns the rect."""
@@ -114,7 +126,7 @@ class Target:
 
     def get_bomb(self, x):
         """Get a bullet"""
-        bombs = self.get_bullets(x)
+        bombs = self.get_bullets()
         b = []
         total_bombs = random.randint(1, 7)
         lb = 0
@@ -128,10 +140,10 @@ class Target:
 
         return b
 
-    def get_bullets(self, x):
+    def get_bullets(self):
         """Returns the list of bullets."""
         for b in range(0, 6):
-            self._bullets.append(Target(f"bullet{b}", x, self._y))
+            self._bullets.append(Target(f"bullet{b}", self._x, self._y))
         return self._bullets
 
     def get_game_over_images(self):

@@ -194,7 +194,9 @@ class Game:
         for bomb in self._bombs:
             self._screen.blit(bomb.getimage(), (bomb.x, bomb.y))
             bomb.y += 1
-            bomb.x += random.randint(-1, 1)
+            if bomb.last == 0:
+                bomb.last = random.randint(-2, 2)
+            bomb.x += bomb.last
             for gallerytarget in self._targets:
                 if gallerytarget.shown:
                     if self.kill_enemy(bomb, gallerytarget):
@@ -207,7 +209,7 @@ class Game:
                                 * self._state.bonus
                             )
                         for b in gallerytarget.get_bomb(bomb.x):
-                            if len(self._bombs) < 10:
+                            if len(self._bombs) < 15:
                                 self._bombs.append(b)
         for bomb in self._bombs:
             if self.debris_player(bomb, self._player):
