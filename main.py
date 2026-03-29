@@ -191,6 +191,7 @@ class Game:
         if self._state.explosion is not None:
             self._state.wait += 1
 
+
         for bomb in self._bombs:
             self._screen.blit(bomb.getimage(), (bomb.x, bomb.y))
             bomb.y += 1
@@ -209,12 +210,16 @@ class Game:
                                 * self._state.bonus
                             )
                         for b in gallerytarget.get_bomb(bomb.x):
-                            if len(self._bombs) < 15:
+                            if len(self._bombs) < random.randint(2,15):
                                 self._bombs.append(b)
         for bomb in self._bombs:
-            if self.debris_player(bomb, self._player):
-                self._score -= (1 + self._score) / 2
+            if self.kill_enemy(self._missle, bomb):
+                self._score += (1 + self._score)
                 bombs_to_remove.append(bomb)
+            else:
+                if self.debris_player(bomb, self._player):
+                    self._score -= (1 + self._score)
+                    bombs_to_remove.append(bomb)
             if bomb.y > 600:
                 bombs_to_remove.append(bomb)
         for bomb in bombs_to_remove:
