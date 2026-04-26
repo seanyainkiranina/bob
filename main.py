@@ -28,6 +28,7 @@ class Game:
         pygame.display.set_caption("Irata Warrior")
         self._clock = pygame.time.Clock()
         self._targets = []
+        self._fleas = []
         self._running = True
         self._starting = True
         self.load_resources()
@@ -49,8 +50,32 @@ class Game:
         self._state = State()
         self._counter_5200 = 1
 
+    def load_fleas(self):
+        """ load fleas here """
+        if (len(self._fleas)>0):
+            return
+        filenames = [
+            "chickenlips",
+            "luigi",
+            "fruit",
+            "vectrex",
+            "zx"
+        ]
+        random.shuffle(filenames)
+        y = 0- random.randint(10,20)
+        lastx = 0
+        for filename in filenames:
+            x = random.randint(10,580)
+            lastx += x
+            y = 0- random.randint(10,20)
+            gallery_target = Target(filename, x, y)
+            gallery_target.shown = True
+            gallery_target.nodeduction = True
+            self._fleas.append(gallery_target)
+  
     def load_resources(self):
         """Load images, sounds, and other resources here"""
+        self.load_fleas()
         self._player = Target("player", 400, 550, 780, 20)
         self._missle = Target("missle", 400, 610)
         filenames = [
@@ -96,7 +121,7 @@ class Game:
 
     def load_enemy(self):
         """Load and display enemies and other game elements."""
-        speed = int(round(((self._max_score + 1) / 300) + 1, 0))
+        speed = int(round((self._max_score + 1) / 1000 ,0)) + 1 
         for gallerytarget in self._targets:
             rr = random.randint(1, 100)
             if rr > 75 and gallerytarget.shown:
@@ -112,6 +137,17 @@ class Game:
             and debris.x + debris.width > player.x
             and debris.y < player.y + player.height
             and debris.y + debris.height > player.y
+        ):
+            return True
+        return False
+
+    def flea_player(self, flea, player):
+        """Check for collision between flea and player."""
+        if (
+            flea.x < player.x + player.width
+            and flea.x + flea.width > player.x
+            and flea.y < player.y + player.height
+            and flea.y + flea.height > player.y
         ):
             return True
         return False
@@ -179,9 +215,19 @@ class Game:
             display_instuct.append(t)
         return display_instuct
 
+    def flea_movement(self):
+        """flea movement"""
+        for flea in self._fleas:
+            if flea.shown:
+                if self.flea_player(flea, self._player):
+                    self._score -= (1 + ((self._score +1) / 10))
+                    flea.shown = False
+                    flea.y = 0- random.randint(10,20)
+
     def exploded_target(self):
         """explode a target"""
         bombs_to_remove = []
+        fleas_to_remove = []
         if self._state.explosion is not None and self._state.wait > 10:
             if len(self._explosions) > 0:
                 self._state.explosion = self._explosions.pop(0)
@@ -213,6 +259,19 @@ class Game:
                             if len(self._bombs) < random.randint(2,15):
                                 self._bombs.append(b)
         for bomb in self._bombs:
+            for flea in self._fleas:
+                if flea.shown:
+                    if self.kill_enemy(bomb, flea):
+                        bombs_to_remove.append(bomb)
+                        flea.shown = False
+                        fleas_to_remove.append(flea)
+                    if self.kill_enemy(self._missle, flea):
+                        self._state.shots_fired = 0
+                        self._target_hit_sound.play()
+                        flea.shown = False
+                        self._score += 10
+                        fleas_to_remove.append(flea)
+
             if self.kill_enemy(self._missle, bomb):
                 self._score += (1 + self._score)
                 bombs_to_remove.append(bomb)
@@ -225,6 +284,9 @@ class Game:
         for bomb in bombs_to_remove:
             if bomb in self._bombs:
                 self._bombs.remove(bomb)
+        for flea in fleas_to_remove:
+            if flea in self._fleas:
+                self._fleas.remove(flea)
 
     def run(self):
         """load screen"""
@@ -359,6 +421,21 @@ class Game:
     def target_movement(self):
         """target movement"""
         r = random.randrange(1, 300)
+        if len(self._fleas) == 0:
+                self.load_fleas()
+        for flea in self._fleas:
+            if flea.shown:
+                if random.randint(1, 100) > 50:
+                    flea.y += 1
+                self._screen.blit(flea.image, (flea.x, flea.y))
+                if flea.y > 600:
+                    flea.shown = False
+            else:
+                zz = random.randint(1, 100)
+                if zz < 50:
+                    flea.shown = True
+                    flea.x = random.randint(10,580)
+                    flea.y = 0- random.randint(10,200)
         for gallerytarget in self._targets:
             if gallerytarget.shown:
                 self._state.images_shown += 1
@@ -454,6 +531,7 @@ class Game:
         self._max_score = 0
         self._bombs = []
         self._game_over_images = []
+        self._fleas = []
         self._state = State()
 
         self._clock.tick(60)  # Limit to 60 FPS
@@ -466,6 +544,7 @@ class Game:
             self.render_score()
             self.player_movement_missle_movement()
             self.load_enemy()
+            self.flea_movement()
             self._state.images_shown = 0
 
             self.game_over()

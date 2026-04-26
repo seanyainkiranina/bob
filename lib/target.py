@@ -242,7 +242,7 @@ class Target:
 
     def move_down(self):
         """Moves the target in the Y direction by delta, ensuring it stays within bounds."""
-        new_y = self._y - 1
-        if new_y < self._min_y:
+        new_y = self._y + 2
+        if new_y >= self._max_y:
             new_y = self._max_y
         self._y = new_y
