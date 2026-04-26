@@ -295,11 +295,11 @@ class Game:
                         fleas_to_remove.append(flea)
 
             if self.kill_enemy(self._missle, bomb):
-                self._score += 1 + self._score
+                self._score += 1 + (self._score // random.randint(2, 5))
                 bombs_to_remove.append(bomb)
             else:
                 if self.debris_player(bomb, self._player):
-                    self._score -= 1 + self._score
+                    self._score -= 1 + (abs(self._score) // 2)
                     bombs_to_remove.append(bomb)
             if bomb.y > 600:
                 bombs_to_remove.append(bomb)
@@ -466,7 +466,7 @@ class Game:
                         self._state.shots_fired = 0
                         self._target_hit_sound.play()
                         flea.shown = False
-                        self._score += 10
+                        self._score += random.randint(1, 2)
 
         for gallerytarget in self._targets:
             if gallerytarget.shown:
@@ -490,7 +490,7 @@ class Game:
                                     self._score += (
                                         (600 - gallerytarget.y) / 100
                                     ) * self._state.bonus
-                            self._score -= (abs(self._score) + 1) / 4
+                            self._score -= (abs(self._score) + 1) / 3
                         self._state.images_shown -= 1
                         self._state.fired = False
                         self._missle.y = -10
@@ -528,7 +528,11 @@ class Game:
         if keys[pygame.K_RIGHT] and self._score > -10:
             self._player.move_x_player(1)
         if keys[pygame.K_SPACE]:
-            if not self._state.fired and self._score > -10 and self._state.explosion is None:
+            if (
+                not self._state.fired
+                and self._score > -10
+                and self._state.explosion is None
+            ):
                 self._state.shots_fired = 1
                 self._fire_sound.play()
                 self._missle.x = (
