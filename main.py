@@ -51,28 +51,22 @@ class Game:
         self._counter_5200 = 1
 
     def load_fleas(self):
-        """ load fleas here """
-        if (len(self._fleas)>0):
+        """load fleas here"""
+        if len(self._fleas) > 0:
             return
-        filenames = [
-            "chickenlips",
-            "luigi",
-            "fruit",
-            "vectrex",
-            "zx"
-        ]
+        filenames = ["chickenlips", "luigi", "fruit", "vectrex", "zx", "5150", "coco"]
         random.shuffle(filenames)
-        y = 0- random.randint(10,20)
+        y = 0 - random.randint(10, 20)
         lastx = 0
         for filename in filenames:
-            x = random.randint(10,580)
+            x = random.randint(10, 580)
             lastx += x
-            y = 0- random.randint(10,20)
+            y = 0 - random.randint(10, 20)
             gallery_target = Target(filename, x, y)
             gallery_target.shown = True
             gallery_target.nodeduction = True
             self._fleas.append(gallery_target)
-  
+
     def load_resources(self):
         """Load images, sounds, and other resources here"""
         self.load_fleas()
@@ -121,7 +115,11 @@ class Game:
 
     def load_enemy(self):
         """Load and display enemies and other game elements."""
-        speed = int(round((self._max_score + 1) / 1000 ,0)) + 1 
+        speed = int(round((self._max_score + 1) / 100, 0)) + 1
+        if self._max_score > 999:
+            speed = int(round((self._max_score + 1) / 1000, 0)) + 1
+        if self._max_score > 9999:
+            speed = int(round((self._max_score + 1) / 10000, 0)) + 1
         for gallerytarget in self._targets:
             rr = random.randint(1, 100)
             if rr > 75 and gallerytarget.shown:
@@ -220,9 +218,9 @@ class Game:
         for flea in self._fleas:
             if flea.shown:
                 if self.flea_player(flea, self._player):
-                    self._score -= (1 + ((self._score +1) / 10))
+                    self._score -= 1 + ((self._score + 1) / 10)
                     flea.shown = False
-                    flea.y = 0- random.randint(10,20)
+                    flea.y = 0 - random.randint(10, 20)
 
     def exploded_target(self):
         """explode a target"""
@@ -236,7 +234,6 @@ class Game:
             self._state.wait = 0
         if self._state.explosion is not None:
             self._state.wait += 1
-
 
         for bomb in self._bombs:
             self._screen.blit(bomb.getimage(), (bomb.x, bomb.y))
@@ -256,7 +253,7 @@ class Game:
                                 * self._state.bonus
                             )
                         for b in gallerytarget.get_bomb(bomb.x):
-                            if len(self._bombs) < random.randint(2,15):
+                            if len(self._bombs) < random.randint(2, 15):
                                 self._bombs.append(b)
         for bomb in self._bombs:
             for flea in self._fleas:
@@ -273,11 +270,11 @@ class Game:
                         fleas_to_remove.append(flea)
 
             if self.kill_enemy(self._missle, bomb):
-                self._score += (1 + self._score)
+                self._score += 1 + self._score
                 bombs_to_remove.append(bomb)
             else:
                 if self.debris_player(bomb, self._player):
-                    self._score -= (1 + self._score)
+                    self._score -= 1 + self._score
                     bombs_to_remove.append(bomb)
             if bomb.y > 600:
                 bombs_to_remove.append(bomb)
@@ -422,7 +419,7 @@ class Game:
         """target movement"""
         r = random.randrange(1, 300)
         if len(self._fleas) == 0:
-                self.load_fleas()
+            self.load_fleas()
         for flea in self._fleas:
             if flea.shown:
                 if random.randint(1, 100) > 50:
@@ -434,8 +431,8 @@ class Game:
                 zz = random.randint(1, 100)
                 if zz < 50:
                     flea.shown = True
-                    flea.x = random.randint(10,580)
-                    flea.y = 0- random.randint(10,200)
+                    flea.x = random.randint(10, 580)
+                    flea.y = 0 - random.randint(10, 200)
         for gallerytarget in self._targets:
             if gallerytarget.shown:
                 self._state.images_shown += 1
@@ -456,8 +453,8 @@ class Game:
                             else:
                                 if self._score > -9:
                                     self._score += (
-                                            (600 - gallerytarget.y) / 100
-                                        ) * self._state.bonus
+                                        (600 - gallerytarget.y) / 100
+                                    ) * self._state.bonus
                             self._score -= (abs(self._score) + 1) / 4
                         self._state.images_shown -= 1
                         self._state.fired = False
