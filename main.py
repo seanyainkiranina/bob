@@ -466,7 +466,7 @@ class Game:
                         self._state.shots_fired = 0
                         self._target_hit_sound.play()
                         flea.shown = False
-                        self._score += random.randint(1, 2)
+                        self._score += abs(random.randint(-200,flea.y) / flea.width)
 
         for gallerytarget in self._targets:
             if gallerytarget.shown:
