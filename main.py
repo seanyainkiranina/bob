@@ -203,7 +203,7 @@ class Game:
 
     def fire_missle(self):
         """Fire a missile from the player's position."""
-        if self._missle.y > 0 and self._state.fired:
+        if self._missle.y > 0:
             self._missle.move_up()
             self._screen.blit(self._missle.image, (self._missle.x, self._missle.y))
 
@@ -528,7 +528,7 @@ class Game:
         if keys[pygame.K_RIGHT] and self._score > -10:
             self._player.move_x_player(1)
         if keys[pygame.K_SPACE]:
-            if not self._state.fired and self._score > -10:
+            if not self._state.fired and self._score > -10 and self._state.explosion is None:
                 self._state.shots_fired = 1
                 self._fire_sound.play()
                 self._missle.x = (
