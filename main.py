@@ -117,9 +117,9 @@ class Game:
         """Load and display enemies and other game elements."""
         speed = int(round((self._max_score + 1) / 100, 0)) + 1
         if self._max_score > 999:
-            speed = int(round((self._max_score + 1) / 1000, 0)) + 1
+            speed = int(round((self._max_score + 1) / 1000, 0)) + 2
         if self._max_score > 9999:
-            speed = int(round((self._max_score + 1) / 10000, 0)) + 1
+            speed = int(round((self._max_score + 1) / 10000, 0)) * 3
         for gallerytarget in self._targets:
             rr = random.randint(1, 100)
             if rr > 75 and gallerytarget.shown:
@@ -218,7 +218,7 @@ class Game:
         for flea in self._fleas:
             if flea.shown:
                 if self.flea_player(flea, self._player):
-                    self._score -= 1 + ((self._score + 1) / 10)
+                    self._score -= 1 + ((self._score + 1) / 2)
                     flea.shown = False
                     flea.y = 0 - random.randint(10, 20)
 
