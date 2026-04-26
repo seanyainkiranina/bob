@@ -54,15 +54,29 @@ class Game:
         """load fleas here"""
         if len(self._fleas) > 0:
             return
-        filenames = ["chickenlips", "luigi", "fruit", "vectrex", "zx", "5150", "coco"]
+        filenames = [
+            "vic20",
+            "5200c",
+            "nes",
+            "odyssey",
+            "colecovision",
+            "intellivison",
+            "chickenlips",
+            "luigi",
+            "fruit",
+            "vectrex",
+            "zx",
+            "5150",
+            "coco",
+            "emerson",
+        ]
         random.shuffle(filenames)
         y = 0 - random.randint(10, 20)
         lastx = 0
         for filename in filenames:
-            x = random.randint(10, 580)
-            lastx += x
             y = 0 - random.randint(10, 20)
-            gallery_target = Target(filename, x, y)
+            gallery_target = Target(filename, lastx, y)
+            lastx += gallery_target.width + 10
             gallery_target.shown = True
             gallery_target.nodeduction = True
             self._fleas.append(gallery_target)
@@ -117,9 +131,20 @@ class Game:
         """Load and display enemies and other game elements."""
         speed = int(round((self._max_score + 1) / 100, 0)) + 1
         if self._max_score > 999:
-            speed = int(round((self._max_score + 1) / 1000, 0)) + 2
+            speed = (
+                int(round((self._max_score + 1) / 1000, 0))
+                + random.randint(0, round(speed / 2))
+                + 2
+            )
         if self._max_score > 9999:
-            speed = int(round((self._max_score + 1) / 10000, 0)) * 3
+            speed = (
+                int(round((self._max_score + 1) / 10000, 0))
+                + random.randint(0, round(speed / 2))
+                + 3
+            )
+        if speed < 1:
+            speed = 1
+        speed = random.randint(0, speed // 2)
         for gallerytarget in self._targets:
             rr = random.randint(1, 100)
             if rr > 75 and gallerytarget.shown:
@@ -178,7 +203,7 @@ class Game:
 
     def fire_missle(self):
         """Fire a missile from the player's position."""
-        if self._missle.y > 0:
+        if self._missle.y > 0 and self._state.fired:
             self._missle.move_up()
             self._screen.blit(self._missle.image, (self._missle.x, self._missle.y))
 
@@ -218,7 +243,7 @@ class Game:
         for flea in self._fleas:
             if flea.shown:
                 if self.flea_player(flea, self._player):
-                    self._score -= 1 + ((self._score + 1) / 2)
+                    self._score -= 1 + (abs(self._score + 1) // 2)
                     flea.shown = False
                     flea.y = 0 - random.randint(10, 20)
 
@@ -433,6 +458,16 @@ class Game:
                     flea.shown = True
                     flea.x = random.randint(10, 580)
                     flea.y = 0 - random.randint(10, 200)
+        for flea in self._fleas:
+            if flea.shown:
+                if self._state.fired and self._score > -9:
+                    if self.kill_enemy(self._missle, flea):
+                        self._state.fired = False
+                        self._state.shots_fired = 0
+                        self._target_hit_sound.play()
+                        flea.shown = False
+                        self._score += 10
+
         for gallerytarget in self._targets:
             if gallerytarget.shown:
                 self._state.images_shown += 1
