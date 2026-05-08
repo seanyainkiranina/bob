@@ -1,6 +1,7 @@
 import os
 import sys
 import random
+from lib import target
 import pygame
 from pygame.locals import (
     QUIT,
@@ -243,7 +244,7 @@ class Game:
         for flea in self._fleas:
             if flea.shown:
                 if self.flea_player(flea, self._player):
-                    self._score -= 1 + (abs(self._score + 1) // 2)
+                    self._score -= 1 + (abs(self._score + 1))
                     flea.shown = False
                     flea.y = 0 - random.randint(10, 20)
 
@@ -291,7 +292,7 @@ class Game:
                         self._state.shots_fired = 0
                         self._target_hit_sound.play()
                         flea.shown = False
-                        self._score += 10
+                        self._score += random.randint(1, (round(flea.y // 3) + 10)+2) 
                         fleas_to_remove.append(flea)
 
             if self.kill_enemy(self._missle, bomb):
