@@ -250,6 +250,8 @@ class Game:
 
     def exploded_target(self):
         """explode a target"""
+        all_fleas_frozen = True
+        flea_counter = 0
         bombs_to_remove = []
         fleas_to_remove = []
         if self._state.explosion is not None and self._state.wait > 10:
@@ -292,9 +294,15 @@ class Game:
                         self._state.shots_fired = 0
                         self._target_hit_sound.play()
                         flea.shown = False
-                        self._score += random.randint(1, (round(flea.y // 3) + 10) + 2)
+                        higher_points = int(round(flea.y + 1,0))
+                        if higher_points <= 0:
+                            higher_points = 10
+                        points = int(round(abs(random.randint(1, higher_points) / flea.width),0)) +2
+                        self._score += random.randint(1, points)
                         fleas_to_remove.append(flea)
-
+                    if flea.stopped is True:
+                        flea_counter += 1
+ 
             if self.kill_enemy(self._missle, bomb):
                 self._score += 1 + (self._score // random.randint(2, 5))
                 bombs_to_remove.append(bomb)
@@ -311,6 +319,9 @@ class Game:
             if flea in self._fleas:
                 flea.stopped = False
                 self._fleas.remove(flea)
+        if flea_counter >= len(self._fleas)-1 and len(self._fleas) > 0:
+            for flea in self._fleas:
+                flea.stopped = False
 
     def run(self):
         """load screen"""
