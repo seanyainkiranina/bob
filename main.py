@@ -50,6 +50,7 @@ class Game:
         self._state = State()
         self._counter_5200 = 1
         self._game_over = -10
+        self._speed =1
 
     def load_fleas(self):
         """load fleas here"""
@@ -130,22 +131,19 @@ class Game:
 
     def load_enemy(self):
         """Load and display enemies and other game elements."""
-        speed = int(round((self._max_score + 1) / 100, 0)) + 1
-        if self._max_score > 999:
-            speed = (
-                int(round((self._max_score + 1) / 1000, 0))
-                + random.randint(0, round(speed / 2))
-                + 2
-            )
-        if self._max_score > 9999:
-            speed = (
-                int(round((self._max_score + 1) / 10000, 0))
-                + random.randint(0, round(speed / 2))
-                + 3
-            )
+        speed = random.randint(1, int(round((self._max_score + 1) / 100, 0)) + 1)
+        if speed > 100:
+            speed = random.randint(1, int(round((self._max_score + 1) / 10, 0)) + 1)
+        if speed > 100:
+            speed = random.randint(1, int(round((self._max_score + 1) / 100, 0)) + 1)
+        if speed > 1000:
+            speed = random.randint(1, int(round((self._max_score + 1) / 1000, 0)) + 1)
+        if speed > 10000:
+            speed = random.randint(1, int(round((self._max_score + 1) / 10000, 0)) + 1)
+ 
         if speed < 1:
             speed = 1
-        speed = random.randint(0, speed // 2)
+        self._speed = speed
         for gallerytarget in self._targets:
             rr = random.randint(1, 100)
             if rr > 75 and gallerytarget.shown:
@@ -188,14 +186,14 @@ class Game:
                 missle.y = -10
                 self._counter_5200 += 1
                 self._score -= self._counter_5200
-                if self._score < -10:
+                if self._score < self._game_over:
                     self.render_score()
                     self.game_over()
                 if self._counter_5200 > 2:
                     self._counter_5200 = 1
                 return False
             if is_flea is False:
-               target.shown = False
+                target.shown = False
             self._saved_x = target.x
             self._saved_y = target.y
             if is_flea is False:
@@ -456,6 +454,8 @@ class Game:
                 self._screen.blit(flea.image, (flea.x, flea.y))
                 if flea.y > 600:
                     flea.shown = False
+                    if self._score > self._game_over:
+                        self._score += random.randint(1, 10)
             else:
                 zz = random.randint(1, 100)
                 if zz < 50:
