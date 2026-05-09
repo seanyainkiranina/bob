@@ -133,8 +133,6 @@ class Game:
         """Load and display enemies and other game elements."""
         speed = 1
         l = len(str(self._max_score)) - 1
-        if l > 4:
-            l = 2
         if self._max_score > 0:
             speed = int(round(self._max_score / (10**l), 0)) + 1
         self._speed = speed
