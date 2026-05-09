@@ -50,7 +50,7 @@ class Game:
         self._state = State()
         self._counter_5200 = 1
         self._game_over = -10
-        self._speed =1
+        self._speed = 1
 
     def load_fleas(self):
         """load fleas here"""
@@ -131,18 +131,12 @@ class Game:
 
     def load_enemy(self):
         """Load and display enemies and other game elements."""
-        speed = random.randint(1, int(round((self._max_score + 1) / 100, 0)) + 1)
-        if speed > 100:
-            speed = random.randint(1, int(round((self._max_score + 1) / 10, 0)) + 1)
-        if speed > 100:
-            speed = random.randint(1, int(round((self._max_score + 1) / 100, 0)) + 1)
-        if speed > 1000:
-            speed = random.randint(1, int(round((self._max_score + 1) / 1000, 0)) + 1)
-        if speed > 10000:
-            speed = random.randint(1, int(round((self._max_score + 1) / 10000, 0)) + 1)
- 
-        if speed < 1:
-            speed = 1
+        speed = 1
+        l = len(str(self._max_score)) - 1
+        if l > 4:
+            l = 2
+        if self._max_score > 0:
+            speed = int(round(self._max_score / (10**l), 0)) + 1
         self._speed = speed
         for gallerytarget in self._targets:
             rr = random.randint(1, 100)
@@ -174,7 +168,7 @@ class Game:
             return True
         return False
 
-    def kill_enemy(self, missle, target,is_flea=False):
+    def kill_enemy(self, missle, target, is_flea=False):
         """Check for collision between missile and target."""
         if (
             missle.x < target.x + target.width
@@ -244,7 +238,7 @@ class Game:
         for flea in self._fleas:
             if flea.shown:
                 if self.flea_player(flea, self._player):
-                    self._score -= (abs(self._score)+  random.randint(0, 9))
+                    self._score -= abs(self._score) + random.randint(0, 9)
                     flea.shown = False
                     flea.y = 0 - random.randint(10, 20)
 
@@ -292,12 +286,14 @@ class Game:
                         self._state.shots_fired = 0
                         self._target_hit_sound.play()
                         flea.shown = False
-                        higher_points = abs(int(round(800-flea.y + 1,0)))
+                        higher_points = abs(int(round(800 - flea.y + 1, 0)))
                         if higher_points <= 0:
                             higher_points = 10
-                        points = int(round(abs(random.randint(1, higher_points)),0)) +2
+                        points = (
+                            int(round(abs(random.randint(1, higher_points)), 0)) + 2
+                        )
                         self._score += random.randint(1, points)
- 
+
             if self.kill_enemy(self._missle, bomb):
                 self._score += 1 + (self._score // random.randint(2, 5))
                 bombs_to_remove.append(bomb)
@@ -410,7 +406,7 @@ class Game:
             self._game_over_sound.play()
 
         if (
-            self._score < self._game_over   
+            self._score < self._game_over
             and len(self._game_over_images) == 0
             and not self._state.game_over_done
         ):
@@ -465,7 +461,7 @@ class Game:
         for flea in self._fleas:
             if flea.shown:
                 if self._state.fired and self._score > self._game_over:
-                    if self.kill_enemy(self._missle, flea,is_flea=True):
+                    if self.kill_enemy(self._missle, flea, is_flea=True):
                         self._state.fired = False
                         self._state.shots_fired = 0
                         if flea.stopped is False:
