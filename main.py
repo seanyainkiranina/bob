@@ -193,7 +193,8 @@ class Game:
                 if self._counter_5200 > 2:
                     self._counter_5200 = 1
                 return False
-            target.shown = False
+            if is_flea is False:
+               target.shown = False
             self._saved_x = target.x
             self._saved_y = target.y
             if is_flea is False:
@@ -225,7 +226,7 @@ class Game:
         self._counter_5200 = 1
         display_instuct = []
         self._font = pygame.font.Font(
-            "lib\\PressStart2P-vaV7.ttf", 11
+            "lib\\PressStart2P-vaV7.ttf", 14
         )  # None uses the default font, 36 is the font size
         for i in linstructions:
             t = {}
@@ -235,7 +236,7 @@ class Game:
                 t["text"] = self._font.render(i, True, (255, 255, 255))
 
             t["text_rect"] = t["text"].get_rect(topleft=(10, start_y))
-            start_y += 16
+            start_y += 23
             display_instuct.append(t)
         return display_instuct
 
@@ -250,7 +251,6 @@ class Game:
 
     def exploded_target(self):
         """explode a target"""
-        all_fleas_frozen = True
         flea_counter = 0
         bombs_to_remove = []
         fleas_to_remove = []
@@ -299,9 +299,6 @@ class Game:
                             higher_points = 10
                         points = int(round(abs(random.randint(1, higher_points) / flea.width),0)) +2
                         self._score += random.randint(1, points)
-                        fleas_to_remove.append(flea)
-                    if flea.stopped is True:
-                        flea_counter += 1
  
             if self.kill_enemy(self._missle, bomb):
                 self._score += 1 + (self._score // random.randint(2, 5))
@@ -319,9 +316,6 @@ class Game:
             if flea in self._fleas:
                 flea.stopped = False
                 self._fleas.remove(flea)
-        if flea_counter >= len(self._fleas)-1 and len(self._fleas) > 0:
-            for flea in self._fleas:
-                flea.stopped = False
 
     def run(self):
         """load screen"""
@@ -341,7 +335,7 @@ class Game:
 
         self._screen.fill((0, 0, 0))  # Clear the screen with black
         self._font = pygame.font.Font(
-            "lib\\PressStart2P-vaV7.ttf", 12
+            "lib\\PressStart2P-vaV7.ttf", 13
         )  # None uses the default font, 36 is the font size
         if self._max_score > 0:
             self._score_board.value = self._max_score
@@ -358,9 +352,6 @@ class Game:
             for h in high_scores:
                 instruction_messages.append(h)
             instruction_messages.append("Points for targets are random,")
-            instruction_messages.append(
-                "with the most points given for smaller size or distant items."
-            )
             instruction_messages.append("S to Start")
 
             text_messages = self.display_instructions(10, instruction_messages)
@@ -482,7 +473,10 @@ class Game:
                             self._score += abs(
                                 random.randint(-200, abs(flea.y) + 1) / flea.width
                             )
-                        flea.stopped = True
+                        if flea.stopped:
+                            flea.stopped = False
+                        else:
+                            flea.stopped = True
 
         for gallerytarget in self._targets:
             if gallerytarget.shown:
