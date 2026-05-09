@@ -49,6 +49,7 @@ class Game:
         self._saved_y = 0
         self._state = State()
         self._counter_5200 = 1
+        self._game_over = -10
 
     def load_fleas(self):
         """load fleas here"""
@@ -193,7 +194,8 @@ class Game:
                 if self._counter_5200 > 2:
                     self._counter_5200 = 1
                 return False
-            target.shown = False
+            if is_flea is False:
+               target.shown = False
             self._saved_x = target.x
             self._saved_y = target.y
             if is_flea is False:
@@ -225,7 +227,7 @@ class Game:
         self._counter_5200 = 1
         display_instuct = []
         self._font = pygame.font.Font(
-            "lib\\PressStart2P-vaV7.ttf", 11
+            "lib\\PressStart2P-vaV7.ttf", 14
         )  # None uses the default font, 36 is the font size
         for i in linstructions:
             t = {}
@@ -235,7 +237,7 @@ class Game:
                 t["text"] = self._font.render(i, True, (255, 255, 255))
 
             t["text_rect"] = t["text"].get_rect(topleft=(10, start_y))
-            start_y += 16
+            start_y += 23
             display_instuct.append(t)
         return display_instuct
 
@@ -244,14 +246,12 @@ class Game:
         for flea in self._fleas:
             if flea.shown:
                 if self.flea_player(flea, self._player):
-                    self._score -= 1 + (abs(self._score + 1))
+                    self._score -= (abs(self._score)+  random.randint(0, 9))
                     flea.shown = False
                     flea.y = 0 - random.randint(10, 20)
 
     def exploded_target(self):
         """explode a target"""
-        all_fleas_frozen = True
-        flea_counter = 0
         bombs_to_remove = []
         fleas_to_remove = []
         if self._state.explosion is not None and self._state.wait > 10:
@@ -299,9 +299,6 @@ class Game:
                             higher_points = 10
                         points = int(round(abs(random.randint(1, higher_points) / flea.width),0)) +2
                         self._score += random.randint(1, points)
-                        fleas_to_remove.append(flea)
-                    if flea.stopped is True:
-                        flea_counter += 1
  
             if self.kill_enemy(self._missle, bomb):
                 self._score += 1 + (self._score // random.randint(2, 5))
@@ -319,9 +316,6 @@ class Game:
             if flea in self._fleas:
                 flea.stopped = False
                 self._fleas.remove(flea)
-        if flea_counter >= len(self._fleas)-1 and len(self._fleas) > 0:
-            for flea in self._fleas:
-                flea.stopped = False
 
     def run(self):
         """load screen"""
@@ -341,7 +335,7 @@ class Game:
 
         self._screen.fill((0, 0, 0))  # Clear the screen with black
         self._font = pygame.font.Font(
-            "lib\\PressStart2P-vaV7.ttf", 12
+            "lib\\PressStart2P-vaV7.ttf", 13
         )  # None uses the default font, 36 is the font size
         if self._max_score > 0:
             self._score_board.value = self._max_score
@@ -358,9 +352,6 @@ class Game:
             for h in high_scores:
                 instruction_messages.append(h)
             instruction_messages.append("Points for targets are random,")
-            instruction_messages.append(
-                "with the most points given for smaller size or distant items."
-            )
             instruction_messages.append("S to Start")
 
             text_messages = self.display_instructions(10, instruction_messages)
@@ -413,7 +404,7 @@ class Game:
 
     def game_over(self):
         """game over"""
-        if self._score < -9 and not self._state.game_over_done:
+        if self._score < self._game_over and not self._state.game_over_done:
             self._state.game_over_wait += 1
             self._state.end_started += 1
 
@@ -421,7 +412,7 @@ class Game:
             self._game_over_sound.play()
 
         if (
-            self._score < -9
+            self._score < self._game_over   
             and len(self._game_over_images) == 0
             and not self._state.game_over_done
         ):
@@ -430,7 +421,7 @@ class Game:
             self._state.game_over_wait = 10001
 
         if (
-            self._score < -9
+            self._score < self._game_over
             and (self._state.game_over_wait > 99)
             and len(self._game_over_images) > 0
             and not self._state.game_over_done
@@ -445,7 +436,7 @@ class Game:
                 self._running = False
                 self._state.game_over_done = True
         else:
-            if len(self._game_over_images) == 0 and self._score < -9:
+            if len(self._game_over_images) == 0 and self._score < self._game_over:
                 self._state.game_over_done = True
 
         if self._state.game_over_wait > 0 and not self._state.game_over_done:
@@ -473,7 +464,7 @@ class Game:
                     flea.y = 0 - random.randint(10, 200)
         for flea in self._fleas:
             if flea.shown:
-                if self._state.fired and self._score > -9:
+                if self._state.fired and self._score > self._game_over:
                     if self.kill_enemy(self._missle, flea,is_flea=True):
                         self._state.fired = False
                         self._state.shots_fired = 0
@@ -482,7 +473,10 @@ class Game:
                             self._score += abs(
                                 random.randint(-200, abs(flea.y) + 1) / flea.width
                             )
-                        flea.stopped = True
+                        if flea.stopped:
+                            flea.stopped = False
+                        else:
+                            flea.stopped = True
 
         for gallerytarget in self._targets:
             if gallerytarget.shown:
@@ -491,18 +485,18 @@ class Game:
                     gallerytarget.image, (gallerytarget.x, gallerytarget.y)
                 )
                 self._state.last_x = gallerytarget.x + gallerytarget.width / 2
-                if self._state.fired and self._score > -9:
+                if self._state.fired and self._score > self._game_over:
                     if self.kill_enemy(self._missle, gallerytarget):
                         self._state.shots_fired = 0
                         self._target_hit_sound.play()
                         if gallerytarget.nodeduction:
                             if self._max_score < r:
-                                if self._score > -9:
+                                if self._score > self._game_over:
                                     self._score += (
                                         103 - gallerytarget.width
                                     ) * self._state.bonus
                             else:
-                                if self._score > -9:
+                                if self._score > self._game_over:
                                     self._score += (
                                         (600 - gallerytarget.y) / 100
                                     ) * self._state.bonus
