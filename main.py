@@ -252,7 +252,6 @@ class Game:
 
     def exploded_target(self):
         """explode a target"""
-        flea_counter = 0
         bombs_to_remove = []
         fleas_to_remove = []
         if self._state.explosion is not None and self._state.wait > 10:
@@ -295,10 +294,10 @@ class Game:
                         self._state.shots_fired = 0
                         self._target_hit_sound.play()
                         flea.shown = False
-                        higher_points = int(round(flea.y + 1,0))
+                        higher_points = abs(int(round(800-flea.y + 1,0)))
                         if higher_points <= 0:
                             higher_points = 10
-                        points = int(round(abs(random.randint(1, higher_points) / flea.width),0)) +2
+                        points = int(round(abs(random.randint(1, higher_points)),0)) +2
                         self._score += random.randint(1, points)
  
             if self.kill_enemy(self._missle, bomb):
@@ -388,7 +387,7 @@ class Game:
             self._state.difference = round(self._score - self._state.last, 1)
         self._state.last = self._score
         self._max_score = round(self._max_score, 1)
-        if self._score > -10:
+        if self._score > self._game_over:
             text = self._font.render(
                 f"Score:{self._score}", True, (255, 255, 255)
             )  # White text
@@ -461,7 +460,7 @@ class Game:
                 zz = random.randint(1, 100)
                 if zz < 50:
                     flea.shown = True
-                    flea.x = random.randint(10, 580)
+                    flea.x = random.randint(5, 785)
                     flea.y = 0 - random.randint(10, 200)
         for flea in self._fleas:
             if flea.shown:
@@ -534,14 +533,14 @@ class Game:
         if keys[pygame.K_ESCAPE]:
             self._running = False
 
-        if keys[pygame.K_LEFT] and self._score > -10:
+        if keys[pygame.K_LEFT] and self._score > self._game_over:
             self._player.move_x_player(-1)
-        if keys[pygame.K_RIGHT] and self._score > -10:
+        if keys[pygame.K_RIGHT] and self._score > self._game_over:
             self._player.move_x_player(1)
         if keys[pygame.K_SPACE]:
             if (
                 not self._state.fired
-                and self._score > -10
+                and self._score > self._game_over
                 and self._state.explosion is None
             ):
                 self._state.shots_fired = 1
@@ -560,7 +559,7 @@ class Game:
             self._state.fired = False
             self._missle.y = 650
 
-        if self._score > -10:
+        if self._score > self._game_over:
             self._screen.blit(self._player.image, (self._player.x, self._player.y))
 
     def start(self):
