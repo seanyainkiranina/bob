@@ -252,6 +252,7 @@ class Game:
 
     def exploded_target(self):
         """explode a target"""
+        flea_counter = 0
         bombs_to_remove = []
         fleas_to_remove = []
         if self._state.explosion is not None and self._state.wait > 10:
