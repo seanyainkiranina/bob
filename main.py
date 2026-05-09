@@ -12,7 +12,6 @@ from pygame.locals import (
     K_RIGHT,
 )  # pylint: disable=[E0611,W0611]
 
-
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
 from target import Target  # type: ignore # Importing Target class from target module
 from score import Score  # pyright: ignore[reportMissingImports]
@@ -176,7 +175,7 @@ class Game:
             return True
         return False
 
-    def kill_enemy(self, missle, target):
+    def kill_enemy(self, missle, target,is_flea=False):
         """Check for collision between missile and target."""
         if (
             missle.x < target.x + target.width
@@ -197,8 +196,9 @@ class Game:
             target.shown = False
             self._saved_x = target.x
             self._saved_y = target.y
-            target.x = target.explode()
-            self._explosions = target.getexploded_images()
+            if is_flea is False:
+                target.x = target.explode()
+                self._explosions = target.getexploded_images()
             return True
         return False
 
@@ -292,7 +292,7 @@ class Game:
                         self._state.shots_fired = 0
                         self._target_hit_sound.play()
                         flea.shown = False
-                        self._score += random.randint(1, (round(flea.y // 3) + 10)+2) 
+                        self._score += random.randint(1, (round(flea.y // 3) + 10) + 2)
                         fleas_to_remove.append(flea)
 
             if self.kill_enemy(self._missle, bomb):
@@ -309,6 +309,7 @@ class Game:
                 self._bombs.remove(bomb)
         for flea in fleas_to_remove:
             if flea in self._fleas:
+                flea.stopped = False
                 self._fleas.remove(flea)
 
     def run(self):
@@ -462,12 +463,15 @@ class Game:
         for flea in self._fleas:
             if flea.shown:
                 if self._state.fired and self._score > -9:
-                    if self.kill_enemy(self._missle, flea):
+                    if self.kill_enemy(self._missle, flea,is_flea=True):
                         self._state.fired = False
                         self._state.shots_fired = 0
-                        self._target_hit_sound.play()
-                        flea.shown = False
-                        self._score += abs(random.randint(-200,flea.y) / flea.width)
+                        if flea.stopped is False:
+                            self._target_hit_sound.play()
+                            self._score += abs(
+                                random.randint(-200, abs(flea.y) + 1) / flea.width
+                            )
+                        flea.stopped = True
 
         for gallerytarget in self._targets:
             if gallerytarget.shown:

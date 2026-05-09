@@ -35,6 +35,7 @@ class Target:
         self._bullets = []
         self._last = 0
         self._nodeduction = False
+        self._stopped = False
 
     @property
     def last(self):
@@ -107,6 +108,8 @@ class Target:
     @x.setter
     def x(self, value):
         """Sets the X coordinate of the target."""
+        if self._stopped is True and self._x > 0 and self._x < self._max_x:
+            return
         self._x = value
 
     @property
@@ -117,7 +120,19 @@ class Target:
     @y.setter
     def y(self, value):
         """Sets the Y coordinate of the target."""
+        if self._stopped is True and self._y > 0 and self._y < self._max_y:
+            return
         self._y = value
+
+    @property
+    def stopped(self):
+        """Returns whether the target is stopped."""
+        return self._stopped
+
+    @stopped.setter
+    def stopped(self, value):
+        """Sets the stopped status of the target."""
+        self._stopped = value
 
     def explode(self):
         """Handles the explosion of the target."""
@@ -242,6 +257,8 @@ class Target:
 
     def move_down(self):
         """Moves the target in the Y direction by delta, ensuring it stays within bounds."""
+        if self._y > 0 and self._y < self._max_y and self._stopped:
+            return
         new_y = self._y + 2
         if new_y >= self._max_y:
             new_y = self._max_y
