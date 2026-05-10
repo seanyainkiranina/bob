@@ -206,8 +206,9 @@ class Game:
         instruct.append("Welcome To Irata Warrior")
         instruct.append("Space bar to fire and arrows to move left and right")
         instruct.append("Game ends when score is 10 below zero")
-        instruct.append("Points are lost when a target scrolls of the screen, ")
-        instruct.append("upon debris impact, the controller, or a ghost is shot.")
+        instruct.append("Points are lost when a target scrolls of the screen ")
+        instruct.append("to the left or right, your hit by falling objects,")
+        instruct.append("the controller is shot, or a ghost is shot.")
         instruct.append("Esc to exit")
 
         return instruct
