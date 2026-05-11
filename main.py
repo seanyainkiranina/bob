@@ -235,6 +235,13 @@ class Game:
     def flea_movement(self):
         """flea movement"""
         for flea in self._fleas:
+            for f in self._fleas:
+                if f is not flea and f.stopped is True and flea.shown and f.shown:
+                    if (
+                        abs(f.x - flea.x) < 20
+                        and abs(f.y - flea.y) < 20
+                    ):
+                        flea.stopped = True
             if flea.shown:
                 if self.flea_player(flea, self._player):
                     self._score -= abs(self._score) + random.randint(0, 9)
